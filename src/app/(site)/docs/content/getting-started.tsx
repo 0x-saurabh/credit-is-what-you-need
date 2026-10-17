@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ECHO_MODEL, RATE_LIMIT } from "@/lib/gateway";
 import { MAX_ACTIVE_KEYS } from "@/lib/limits";
-import { CREDITS_PER_USD, MARGIN, MIN_CREDITS_PER_REQUEST } from "@/lib/pricing";
+import { formatRupees } from "@/lib/format";
+import { CREDITS_PER_USD, INR_PER_USD, MARGIN, MIN_CREDITS_PER_REQUEST, RUPEES_PER_1000 } from "@/lib/pricing";
 import { KeyPanel } from "../key-panel";
 import { OriginCode, Quickstart } from "../quickstart";
 import { Card, Cards, Doc, H2, number, Step, Steps, Table } from "../ui";
@@ -88,8 +89,8 @@ export function HowItWorks() {
       <H2>1. A payment becomes credits</H2>
       <p>
         You pay a payment provider on the Credits page. The provider confirms the payment to the server over a signed
-        webhook, and the server writes the credits to your balance: {number(CREDITS_PER_USD)} credits for every $1
-        paid, at the price shown before you paid. A payment is written exactly once, however many times the provider
+        webhook, and the server writes the credits to your balance: {number(CREDITS_PER_USD)} credits for every{" "}
+        {formatRupees(RUPEES_PER_1000)} paid, at the price shown before you paid. A payment is written exactly once, however many times the provider
         repeats itself. See <Link href="/docs/credits/buying">Buying credits</Link>.
       </p>
 
@@ -131,7 +132,7 @@ export function Rules() {
       <Table
         head={["Rule", "Value"]}
         rows={[
-          ["Credit value", `${number(CREDITS_PER_USD)} credits = $1 of AI usage`],
+          ["Credit value", `${number(CREDITS_PER_USD)} credits ≈ ${formatRupees(RUPEES_PER_1000)} of AI usage (providers price in dollars; shown at ₹${INR_PER_USD} to the dollar)`],
           ["Fee on AI calls", `${marginPercent}%: you pay the provider's price`],
           ["Minimum charge per call", `${MIN_CREDITS_PER_REQUEST} credit`],
           ["Rounding", "Up to the next whole credit"],
@@ -143,7 +144,7 @@ export function Rules() {
       <Table
         head={["Rule", "Value"]}
         rows={[
-          ["Payment methods", "Card, UPI, net banking, through the configured payment provider"],
+          ["Payment methods", "UPI, cards, net banking, in rupees, through Dodo Payments"],
           ["When credits land", "On the provider's webhook confirming the payment"],
           ["A payment pays", "Once, keyed by the provider's payment id"],
           ["Refunds", "Final once written; a reversed payment takes its credits back"],

@@ -3,8 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { CoinsIcon } from "@/components/icons";
-import { formatCredits, formatMoney } from "@/lib/format";
-import { CREDITS_PER_USD } from "@/lib/pricing";
+import { creditsInRupees, formatCredits, formatMoney, formatRupees } from "@/lib/format";
+import { CREDITS_PER_USD, RUPEES_PER_1000 } from "@/lib/pricing";
 import { ACCOUNT_KEY, api, useKreditAccount } from "@/lib/use-kredit-account";
 import { when } from "./activity-table";
 
@@ -68,7 +68,7 @@ export function BuyCredits() {
       </div>
       <p className="mt-1 text-sm text-mist">
         Pay by card, UPI or your local method and the credits land in your balance the moment the payment is confirmed.{" "}
-        {formatCredits(CREDITS_PER_USD)} credits buy $1 of AI usage. Credits do not expire.
+        {formatCredits(CREDITS_PER_USD)} credits buy {formatRupees(RUPEES_PER_1000)} of AI usage. Credits do not expire.
       </p>
 
       {returned && (
@@ -95,7 +95,7 @@ export function BuyCredits() {
               >
                 <span>
                   <span className="block font-mono text-xl font-semibold text-fog">{formatCredits(pack.credits)}</span>
-                  <span className="block text-xs text-mist">credits · ${(pack.credits / CREDITS_PER_USD).toFixed(2)} of AI usage</span>
+                  <span className="block text-xs text-mist">credits · {creditsInRupees(pack.credits)} of AI usage</span>
                 </span>
                 <span className="font-mono text-base text-accent">{formatMoney(pack.amount, pack.currency)}</span>
               </button>
@@ -109,7 +109,7 @@ export function BuyCredits() {
       {!open && !config.isLoading && (
         <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-xl border border-line bg-raised p-5 font-mono">
           <div>
-            <p className="text-2xl font-semibold text-fog sm:text-3xl">$</p>
+            <p className="text-2xl font-semibold text-fog sm:text-3xl">₹</p>
             <p className="mt-1 text-xs text-mist">card · UPI · local methods</p>
           </div>
           <CoinsIcon className="size-5 text-accent" />

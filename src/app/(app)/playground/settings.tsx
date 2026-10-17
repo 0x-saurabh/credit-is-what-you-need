@@ -7,7 +7,7 @@ import { costExamples } from "@/lib/cost-examples";
 import { formatCredits } from "@/lib/format";
 import { HOUSE_STYLE } from "@/lib/house-style";
 import { IMAGE_SIZES, VIDEO_ASPECTS, VIDEO_DURATIONS, VIDEO_RESOLUTIONS } from "@/lib/media-options";
-import { CREDITS_PER_USD } from "@/lib/pricing";
+import { creditsInRupees } from "@/lib/format";
 import { ColumnsIcon } from "./icons";
 import { ModelPicker } from "./model-picker";
 import { PRESETS, type ImageOptions, type Mode, type VideoOptions } from "./types";
@@ -108,7 +108,7 @@ export function Settings({ mode, model, onModel, compareModel, onCompareModel, s
                 <span className="ml-2 font-sans text-xs font-normal tracking-normal text-mist">credits</span>
               </p>
               <p className="mt-0.5 text-xs text-mist">
-                {balance === undefined ? "Loading your balance" : `≈ $${(balance / CREDITS_PER_USD).toFixed(2)} of AI usage`}
+                {balance === undefined ? "Loading your balance" : `≈ ${creditsInRupees(balance)} of AI usage`}
               </p>
             </>
           ) : (

@@ -20,14 +20,15 @@ test("packs are the one-time products that say how many credits they buy, cheape
     product({ product_id: "pdt_other", metadata: {} }), // some other product on the account
     product({ product_id: "pdt_free", metadata: { kredit_credits: "0" } }),
     product({ product_id: "pdt_nan", metadata: { kredit_credits: "lots" } }),
-  ]);
+    product({ product_id: "pdt_inr", metadata: { kredit_credits: "1000" }, currency: "INR" }), // another currency is not for sale here
+  ], "USD");
   assert.deepEqual(packs, [
     { credits: 1000, productId: "pdt_small", amount: 100, currency: "USD" },
     { credits: 10000, productId: "pdt_big", amount: 1000, currency: "USD" },
   ]);
 });
 
-const packs = packsFrom([product({ product_id: "pdt_1k", metadata: { kredit_credits: "1000" }, price: 100 })]);
+const packs = packsFrom([product({ product_id: "pdt_1k", metadata: { kredit_credits: "1000" }, price: 100 })], "USD");
 
 const payment = (overrides: Partial<Payment> = {}) =>
   ({

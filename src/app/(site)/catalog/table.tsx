@@ -249,7 +249,7 @@ export function CatalogTable({ makers, models, live }: { makers: Maker[]; models
         <p>
           {filtered.length === models.length ? `${formatCredits(models.length)} models` : `${formatCredits(filtered.length)} of ${formatCredits(models.length)} models`} from{" "}
           {formatCredits(groups.length)} {groups.length === 1 ? "maker" : "makers"}. A turn is a {formatCredits(TURN_IN)}-token prompt with a {TURN_OUT}-token answer;
-          1,000 credits = $1.
+          1,000 credits ≈ ₹85.
           {filtering && (
             <>
               {" "}

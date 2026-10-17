@@ -2,7 +2,8 @@ import Link from "next/link";
 import { ArrowRightIcon, PlayIcon } from "@/components/icons";
 import { catalog } from "@/lib/catalog";
 import { ECHO_MODEL } from "@/lib/gateway";
-import { CREDITS_PER_USD, MARGIN } from "@/lib/pricing";
+import { CREDITS_PER_USD, MARGIN, RUPEES_PER_1000 } from "@/lib/pricing";
+import { formatRupees } from "@/lib/format";
 import { KeyPanel } from "./key-panel";
 import { Quickstart } from "./quickstart";
 import { Card, Cards, Doc, H2, number, Table } from "./ui";
@@ -40,14 +41,14 @@ export default async function Introduction() {
 
       <H2>What Kredit is</H2>
       <p>
-        You sign in with an email code or Google and buy credits by card or UPI. {number(CREDITS_PER_USD)} credits buy
-        $1 of AI usage through an API that speaks the OpenAI and Anthropic formats, so Cursor, Claude Code, the SDKs
+        You sign in with an email code or Google and buy credits by card or UPI. {number(CREDITS_PER_USD)} credits buy{" "}
+        {formatRupees(RUPEES_PER_1000)} of AI usage through an API that speaks the OpenAI and Anthropic formats, so Cursor, Claude Code, the SDKs
         and every tool you already use work by changing the base URL.
       </p>
       <Table
         head={["You do", "Kredit does"]}
         rows={[
-          ["Pay by card, UPI or net banking", `Writes ${number(CREDITS_PER_USD)} credits per $1 to your balance the moment the payment is confirmed`],
+          ["Pay by card, UPI or net banking", `Writes ${number(CREDITS_PER_USD)} credits per ${formatRupees(RUPEES_PER_1000)} to your balance the moment the payment is confirmed`],
           ["Create an API key", "Hands you a key that spends your balance and nothing else"],
           ["Call a model with your key", `Charges the provider's price with a ${marginPercent}% fee, and tells you in two headers`],
         ]}

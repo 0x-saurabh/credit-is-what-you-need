@@ -10,6 +10,9 @@ import { SITE_URL } from "./site.ts";
 
 export const PACK_METADATA_KEY = "kredit_credits";
 
+// The currency packs are sold in. Products in any other currency are ignored.
+export const PACK_CURRENCY = (process.env.CREDITS_CURRENCY || "INR").toUpperCase();
+
 // A missing or misspelled value must never resolve to live mode.
 export const dodoEnvironment = (): "test_mode" | "live_mode" => (process.env.DODO_PAYMENTS_ENVIRONMENT === "live_mode" ? "live_mode" : "test_mode");
 
@@ -35,12 +38,12 @@ type PackProduct = Pick<ProductListResponse, "product_id" | "metadata" | "is_rec
 
 // The packs for sale, from Dodo's product list: one-time products that say how
 // many credits they buy. Cheapest first. Pure, so the rule is easy to test.
-export function packsFrom(products: PackProduct[]): Pack[] {
+export function packsFrom(products: PackProduct[], currency = PACK_CURRENCY): Pack[] {
   const packs: Pack[] = [];
   for (const product of products) {
     const credits = Number(product.metadata?.[PACK_METADATA_KEY]);
     if (!Number.isInteger(credits) || credits <= 0) continue;
-    if (product.is_recurring || typeof product.price !== "number" || !product.currency) continue;
+    if (product.is_recurring || typeof product.price !== "number" || product.currency !== currency) continue;
     packs.push({ credits, productId: product.product_id, amount: product.price, currency: product.currency });
   }
   return packs.sort((a, b) => a.credits - b.credits);
@@ -70,7 +73,6 @@ export async function createCheckout(user: { id: string; email: string | null; n
     // The webhook reads these back. The user id is the account to credit.
     metadata: { user_id: user.id, [PACK_METADATA_KEY]: pack.credits },
     return_url: RETURN_URL,
-    feature_flags: { allow_currency_selection: true },
   });
   if (!session.checkout_url) throw new Error("Dodo returned no checkout URL");
   return { sessionId: session.session_id, url: session.checkout_url };

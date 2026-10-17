@@ -15,7 +15,9 @@ export const warn = (text) => `${pc.yellow("!")} ${text}`;
 export const fail = (text) => `${pc.red(glyph.fail)} ${text}`;
 
 export const credits = (n) => Number(n).toLocaleString("en-US");
-export const usd = (creditsAmount) => `$${(creditsAmount / 1000).toFixed(2)}`;
+// Providers price in dollars; people see rupees, at the same fixed rate the site uses.
+const INR_PER_USD = Number(process.env.KREDIT_INR_PER_USD) || 85;
+export const usd = (creditsAmount) => `₹${((creditsAmount / 1000) * INR_PER_USD).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 export const plural = (n, word) => `${credits(n)} ${word}${n === 1 ? "" : "s"}`;
 export const seconds = (ms) => `${(ms / 1000).toFixed(1)}s`;
 

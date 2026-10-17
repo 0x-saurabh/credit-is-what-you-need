@@ -6,6 +6,7 @@ import { prefersReducedMotion, useInView } from "@/components/motion/use-in-view
 import { costExamples } from "@/lib/cost-examples";
 import { formatCredits } from "@/lib/format";
 import { MAX_ACTIVE_KEYS } from "@/lib/limits";
+import { creditsInRupees } from "@/lib/format";
 import { CREDITS_PER_USD } from "@/lib/pricing";
 
 type Entry = { kind: string; detail: string; amount: number };
@@ -19,10 +20,10 @@ const spend = (example: (typeof costExamples)[number]): Entry => ({
 
 // An invented ledger, replayed in order. Rates and prices still come from the real rules.
 const entries: Entry[] = [
-  { kind: "Bought", detail: "Paid ₹850.00 through Razorpay", amount: 10 * CREDITS_PER_USD },
+  { kind: "Bought", detail: "Paid ₹850.00 through Dodo Payments", amount: 10 * CREDITS_PER_USD },
   spend(costExamples[2]),
   spend(costExamples[1]),
-  { kind: "Bought", detail: "Paid $20.00 through Dodo Payments", amount: 20 * CREDITS_PER_USD },
+  { kind: "Bought", detail: "Paid ₹1,700.00 through Dodo Payments", amount: 20 * CREDITS_PER_USD },
   spend(costExamples[3]),
   spend(costExamples[0]),
   { kind: "Added", detail: "Welcome credits", amount: 500 },
@@ -49,7 +50,7 @@ function totalsAfter(count: number) {
   return { earned, spent, balance: earned - spent };
 }
 
-const dollars = (credits: number) => `≈ $${(credits / CREDITS_PER_USD).toFixed(2)}`;
+const dollars = (credits: number) => `≈ ${creditsInRupees(credits)}`;
 
 // The signed-in overview, in miniature. A new ledger entry lands every few
 // seconds and the three totals move with it, so the numbers always add up.

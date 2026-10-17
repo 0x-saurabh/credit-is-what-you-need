@@ -1,4 +1,4 @@
-import { creditsFor, CREDITS_PER_USD, ECHO_PRICE } from "./pricing.ts";
+import { creditsFor, CREDITS_PER_USD, ECHO_PRICE, rupeesFor } from "./pricing.ts";
 
 // What typical requests cost, worked out by the real pricing function so the
 // numbers shown to people can never drift from what they are charged. They use
@@ -15,5 +15,5 @@ const sizes = [
 
 export const costExamples = sizes.map((size) => {
   const credits = creditsFor(ECHO_PRICE, size);
-  return { ...size, credits, usd: credits / CREDITS_PER_USD };
+  return { ...size, credits, usd: credits / CREDITS_PER_USD, inr: rupeesFor(credits) };
 });

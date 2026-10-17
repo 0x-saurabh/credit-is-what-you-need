@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { CREDITS_PER_USD } from "@/lib/pricing";
+import { formatRupees } from "@/lib/format";
+import { CREDITS_PER_USD, RUPEES_PER_1000 } from "@/lib/pricing";
 import { Callout, Doc, H2, number, Table } from "../ui";
 
 // Buying credits, written from src/lib/ledger.ts (recordPurchase) and the
@@ -10,9 +11,9 @@ export function Buying() {
     <Doc slug="credits/buying" lede="Credits are prepaid. You pay a payment provider by card, UPI or net banking; the provider confirms the payment to Kredit; Kredit writes the credits to your balance. Nothing else is involved.">
       <H2>What a purchase buys</H2>
       <p>
-        {number(CREDITS_PER_USD)} credits pay for $1 of AI usage at the provider&apos;s price. The price per thousand credits
-        is shown on <Link href="/dashboard/credits">Credits</Link> before you pay, in your own currency where the payment
-        provider supports it. Credits do not expire.
+        {number(CREDITS_PER_USD)} credits pay for {formatRupees(RUPEES_PER_1000)} of AI usage at the provider&apos;s price. The
+        price per thousand credits is shown on <Link href="/dashboard/credits">Credits</Link> in rupees before you pay.
+        Credits do not expire.
       </p>
 
       <H2>How a payment becomes credits</H2>
@@ -41,12 +42,12 @@ export function Buying() {
         head={["Provider", "Methods", "Currency"]}
         rows={[
           ["Razorpay", "UPI, cards, net banking, wallets", "INR"],
-          ["Dodo Payments", "Cards, UPI and local methods worldwide", "USD and local currencies"],
+          ["Dodo Payments", "UPI, cards, net banking and local methods", "INR"],
         ]}
         min="28rem"
       />
       <p>
-        Dodo Payments is live first; Razorpay is planned for buyers who want to pay in rupees at lower fees. The
+        Dodo Payments is live first; Razorpay is planned as a second way to pay in rupees. The
         Credits page only shows the providers this server has switched on.
       </p>
 

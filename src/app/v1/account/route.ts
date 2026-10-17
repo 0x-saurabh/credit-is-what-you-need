@@ -1,7 +1,7 @@
 import { heldFor } from "@/lib/budget";
 import { authenticate, preflight, RATE_LIMIT, v1 } from "@/lib/gateway";
 import { getBalance, getTotals } from "@/lib/ledger";
-import { CREDITS_PER_USD } from "@/lib/pricing";
+import { CREDITS_PER_USD, rupeesFor } from "@/lib/pricing";
 import { getUser } from "@/lib/users";
 
 // The account behind a key, for apps that want to show a balance. Never the
@@ -22,6 +22,7 @@ export const GET = v1(async (request) => {
     held, // promised to calls still running
     available: Math.max(0, balance - held),
     usd_value: balance / CREDITS_PER_USD,
+    inr_value: Math.round(rupeesFor(balance) * 100) / 100,
     total_spent: (await getTotals(caller.userId)).spent,
     rate_limit: { requests_per_minute: RATE_LIMIT },
   });

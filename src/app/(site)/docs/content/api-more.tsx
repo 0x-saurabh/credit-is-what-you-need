@@ -4,7 +4,8 @@ import { catalog } from "@/lib/catalog";
 import { costExamples } from "@/lib/cost-examples";
 import { ECHO_MODEL } from "@/lib/gateway";
 import { MAX_ACTIVE_KEYS } from "@/lib/limits";
-import { CREDITS_PER_USD, MARGIN, MIN_CREDITS_PER_REQUEST } from "@/lib/pricing";
+import { formatRupees } from "@/lib/format";
+import { CREDITS_PER_USD, INR_PER_USD, MARGIN, MIN_CREDITS_PER_REQUEST, RUPEES_PER_1000 } from "@/lib/pricing";
 import { featuredProviders, makerInfo, makerOf } from "@/lib/providers";
 import { ModelCatalog } from "../model-catalog";
 import { BaseUrl, OriginCode } from "../quickstart";
@@ -307,7 +308,7 @@ export async function Models() {
 
 export function Billing() {
   return (
-    <Doc slug="api/billing" lede={`${number(CREDITS_PER_USD)} credits pay for $1 of AI usage. A call costs exactly what the provider charged for it, with a ${marginPercent}% fee, rounded up to a whole credit.`}>
+    <Doc slug="api/billing" lede={`${number(CREDITS_PER_USD)} credits pay for ${formatRupees(RUPEES_PER_1000)} of AI usage (providers price in dollars, shown at ₹${INR_PER_USD} to the dollar). A call costs exactly what the provider charged for it, with a ${marginPercent}% fee, rounded up to a whole credit.`}>
       <H2>The formula</H2>
       <CodeBlock title="Credits for a call" code={`credits = max(${MIN_CREDITS_PER_REQUEST}, ceil(provider_usd × ${number(CREDITS_PER_USD)}))${MARGIN > 0 ? `  # plus ${marginPercent}%` : "  # no fee on top"}`} />
       <p>
@@ -327,7 +328,7 @@ export function Billing() {
         million tokens. Every model&apos;s own price is on <code>GET /v1/models</code>.
       </p>
       <Table
-        head={["Request", "#In / out tokens", "#Credits", "#≈ USD"]}
+        head={["Request", "#In / out tokens", "#Credits", "#≈ INR"]}
         rows={costExamples.map((example) => [
           <span key={example.name}>
             <span className="block text-fog">{example.name}</span>
@@ -335,7 +336,7 @@ export function Billing() {
           </span>,
           `${number(example.inputTokens)} / ${number(example.outputTokens)}`,
           number(example.credits),
-          `$${example.usd.toFixed(3)}`,
+          formatRupees(example.inr, 2),
         ])}
         min="30rem"
       />
@@ -522,7 +523,7 @@ export function Account() {
           <code>balance − held</code>, never below zero. What a new call can spend.
         </Param>
         <Param name="usd_value" type="number">
-          The balance divided by {number(CREDITS_PER_USD)}.
+          The balance divided by {number(CREDITS_PER_USD)}; <code>inr_value</code> is the same in rupees at ₹{INR_PER_USD} to the dollar.
         </Param>
         <Param name="total_spent" type="integer">
           Everything this account has ever spent, across all its keys and the playground.

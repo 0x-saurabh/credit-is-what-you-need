@@ -10,7 +10,7 @@ in **credits**. You sign in with an email code or Google, buy credits by card or
 create an API key you use like an OpenAI key: every call takes a few credits off your
 balance and tells you what it cost.
 
-**1,000 credits = $1 of AI usage.** (`src/lib/pricing.ts`)
+**1,000 credits ≈ ₹85 of AI usage.** Providers price models in dollars; the site shows rupees at a fixed ₹85 to the dollar. (`src/lib/pricing.ts`)
 
 ```
 card / UPI payment ──webhook──▶ credits ──API key / playground──▶ AI answers
@@ -50,7 +50,7 @@ they sign in again, their old rows move under their Privy id. (`src/lib/users.ts
 ### 3. Buying credits
 
 On **Credits**, you pick an amount and pay at the payment provider's checkout (Razorpay for
-INR with UPI, cards and net banking; Dodo Payments for cards and local methods worldwide).
+INR with UPI, cards and net banking; Dodo Payments; prices in rupees).
 The provider tells the server the payment succeeded over a signed webhook, and the server
 writes one purchase row and one ledger row. A payment is written exactly once, keyed by the
 provider's payment id, so a webhook delivered twice cannot pay twice. The purchase then

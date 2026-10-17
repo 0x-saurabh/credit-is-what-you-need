@@ -11,9 +11,9 @@ import { CountUp } from "@/components/motion/count-up";
 import { Reveal } from "@/components/motion/reveal";
 import { SignInButton } from "@/components/sign-in-button";
 import { costExamples } from "@/lib/cost-examples";
-import { formatCredits } from "@/lib/format";
+import { formatCredits, formatRupees } from "@/lib/format";
 import { MAX_ACTIVE_KEYS } from "@/lib/limits";
-import { CREDITS_PER_USD, MARGIN, MIN_CREDITS_PER_REQUEST } from "@/lib/pricing";
+import { CREDITS_PER_USD, MARGIN, MIN_CREDITS_PER_REQUEST, RUPEES_PER_1000 } from "@/lib/pricing";
 
 // Every number on this page is read from the rules that do the real billing,
 // so the page can't drift from them.
@@ -89,7 +89,7 @@ const dashboardPoints = [
 ];
 
 const stats = [
-  { value: CREDITS_PER_USD, suffix: "", label: "credits buy $1 of AI usage" },
+  { value: CREDITS_PER_USD, suffix: "", label: `credits buy ${formatRupees(RUPEES_PER_1000)} of AI usage` },
   { value: marginPercent, suffix: "%", label: "fee on top of the provider's price" },
   { value: 500, suffix: "+", label: "models behind one key" },
   { value: MAX_ACTIVE_KEYS, suffix: "", label: "active keys per account, one per tool" },
@@ -105,14 +105,14 @@ const openRouterComparison = {
   ],
   different: [
     "Sign in with an email code or Google. No wallet, no seed phrase, no browser extension.",
-    "Pay in rupees by UPI or card, or in dollars by card. Credits land the moment the payment is confirmed.",
+    "Pay in rupees by UPI, card or net banking. Credits land the moment the payment is confirmed.",
     "The cost of every call comes back in the response headers.",
     "A built-in echo model, so you can test a key before spending on a real one.",
   ],
 };
 
 const buyPoints = [
-  "Card, UPI and net banking through a regulated payment provider. Kredit never sees your card.",
+  "UPI, cards and net banking in rupees through a regulated payment provider. Kredit never sees your card.",
   "Credits are written to your balance by the provider's confirmation, never by a page you could reload.",
   "Every purchase is listed on your dashboard with what it cost and what it bought.",
 ];
@@ -120,7 +120,7 @@ const buyPoints = [
 const faqs = [
   {
     question: "What is a credit worth?",
-    answer: `${formatCredits(CREDITS_PER_USD)} credits pay for $1 of AI usage. Each call is charged exactly what the model's provider charged, with a ${marginPercent}% fee on top and a ${MIN_CREDITS_PER_REQUEST}-credit minimum, and every response tells you what it cost and what is left.`,
+    answer: `${formatCredits(CREDITS_PER_USD)} credits pay for ${formatRupees(RUPEES_PER_1000)} of AI usage. Each call is charged exactly what the model's provider charged, with a ${marginPercent}% fee on top and a ${MIN_CREDITS_PER_REQUEST}-credit minimum, and every response tells you what it cost and what is left.`,
   },
   {
     question: "How do I sign in?",
@@ -128,7 +128,7 @@ const faqs = [
   },
   {
     question: "How do I pay?",
-    answer: "By card, UPI or net banking at a fixed price per thousand credits. The payment goes through a regulated provider; Kredit only hears that it succeeded and writes the credits to your balance.",
+    answer: "In rupees, by UPI, card or net banking, at a fixed price per thousand credits. The payment goes through a regulated provider; Kredit only hears that it succeeded and writes the credits to your balance.",
   },
   {
     question: "Where can I spend credits?",
@@ -392,7 +392,7 @@ export default function Home() {
         <div className="grid items-center gap-x-16 gap-y-12 lg:grid-cols-[1.2fr_1fr]">
           <div>
             <SectionHeading eyebrow="Paying" title="Buy credits by card or UPI">
-              Top up when you need to, at a fixed price per thousand credits. The payment goes
+              Top up when you need to, in rupees, at a fixed price per thousand credits. The payment goes
               through a regulated provider and the credits land the moment it is confirmed.
               Nothing recurs unless you ask it to.
             </SectionHeading>
@@ -420,13 +420,13 @@ export default function Home() {
               </div>
               <div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4 font-mono">
                 <div>
-                  <p className="text-2xl font-semibold text-fog sm:text-3xl">$1</p>
+                  <p className="text-2xl font-semibold text-fog sm:text-3xl">{formatRupees(RUPEES_PER_1000)}</p>
                   <p className="mt-1 text-xs text-mist">card · UPI · net banking</p>
                 </div>
                 <ArrowRightIcon className="size-5 text-accent" />
                 <div className="text-right">
                   <p className="text-2xl font-semibold text-accent sm:text-3xl">{formatCredits(CREDITS_PER_USD)}</p>
-                  <p className="mt-1 text-xs text-mist">credits · $1 of AI usage</p>
+                  <p className="mt-1 text-xs text-mist">credits · {formatRupees(RUPEES_PER_1000)} of AI usage</p>
                 </div>
               </div>
               <Link href="/dashboard/credits" className="btn-ghost mt-8 w-full justify-center px-5 py-2.5 text-sm">

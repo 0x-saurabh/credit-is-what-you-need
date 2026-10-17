@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MAX_ACTIVE_KEYS } from "@/lib/limits";
-import { CREDITS_PER_USD, MARGIN } from "@/lib/pricing";
+import { CREDITS_PER_USD, MARGIN, RUPEES_PER_1000 } from "@/lib/pricing";
+import { formatRupees } from "@/lib/format";
 import { SITE_URL } from "@/lib/site";
 import { Callout, Doc, H2, Table, number } from "../ui";
 
@@ -139,7 +140,7 @@ export function Terms() {
       <H2>2. Credits</H2>
       <ul>
         <li>
-          {number(CREDITS_PER_USD)} credits pay for $1 of model usage at the provider&apos;s published price, with a{" "}
+          {number(CREDITS_PER_USD)} credits pay for {formatRupees(RUPEES_PER_1000)} of model usage at the provider&apos;s published price (in dollars, shown in rupees at a fixed rate), with a{" "}
           {Math.round(MARGIN * 100)}% fee on top, rounded up to a whole credit per call.
         </li>
         <li>

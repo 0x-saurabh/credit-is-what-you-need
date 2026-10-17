@@ -1,5 +1,13 @@
 // What a model call costs in credits. 1,000 credits = $1.
 export const CREDITS_PER_USD = 1000;
+// Providers price models in dollars; people here see rupees. One fixed rate for
+// every display, so the numbers on the site agree with each other. Change it
+// with NEXT_PUBLIC_INR_PER_USD (read at build time) when the rate drifts.
+export const INR_PER_USD = Number(process.env.NEXT_PUBLIC_INR_PER_USD) || 85;
+// What a number of credits is worth in rupees, as a number (85 for 1,000 credits).
+export const rupeesFor = (credits: number) => (credits / CREDITS_PER_USD) * INR_PER_USD;
+// The anchor every page quotes: 1,000 credits ≈ ₹85 of AI usage.
+export const RUPEES_PER_1000 = rupeesFor(1000);
 export const MARGIN = 0; // No fee: a call costs exactly what the provider charged, rounded up to a whole credit
 export const MIN_CREDITS_PER_REQUEST = 1;
 

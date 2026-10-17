@@ -1,10 +1,11 @@
 "use client";
 
 import { CountUp } from "@/components/motion/count-up";
+import { creditsInRupees } from "@/lib/format";
 import { MAX_ACTIVE_KEYS } from "@/lib/limits";
 import { useKreditAccount } from "@/lib/use-kredit-account";
 
-const dollars = (credits: number) => `≈ $${(credits / 1000).toFixed(2)} of AI usage`;
+const rupees = (credits: number) => `≈ ${creditsInRupees(credits)} of AI usage`;
 
 // The four numbers that answer "where do I stand?". Only the balance gets the accent.
 export function KpiStrip() {
@@ -18,17 +19,17 @@ export function KpiStrip() {
           <span className="live-dot" /> Credit balance
         </p>
         <p className="kpi-value text-accent">{data ? <CountUp value={data.balance} duration={900} /> : blank}</p>
-        <p className="kpi-note">{data ? dollars(data.balance) : "Loading"}</p>
+        <p className="kpi-note">{data ? rupees(data.balance) : "Loading"}</p>
       </div>
       <div className="kpi">
         <p className="kpi-label">Added, all time</p>
         <p className="kpi-value">{data ? <CountUp value={data.earned} duration={900} /> : blank}</p>
-        <p className="kpi-note">{data ? dollars(data.earned) : "Loading"}</p>
+        <p className="kpi-note">{data ? rupees(data.earned) : "Loading"}</p>
       </div>
       <div className="kpi">
         <p className="kpi-label">Spent on AI</p>
         <p className="kpi-value">{data ? <CountUp value={data.spent} duration={900} /> : blank}</p>
-        <p className="kpi-note">{data ? dollars(data.spent) : "Loading"}</p>
+        <p className="kpi-note">{data ? rupees(data.spent) : "Loading"}</p>
       </div>
       <div className="kpi">
         <p className="kpi-label">Active API keys</p>

@@ -1,5 +1,5 @@
 import { ECHO_MODEL, preflight, RATE_LIMIT, v1 } from "@/lib/gateway";
-import { CREDITS_PER_USD, MARGIN } from "@/lib/pricing";
+import { CREDITS_PER_USD, INR_PER_USD, MARGIN } from "@/lib/pricing";
 import { SITE_URL } from "@/lib/site";
 
 // The API described in OpenAPI 3.1, for generating clients and for tools that
@@ -34,7 +34,7 @@ export const GET = v1(() => {
       title: "Kredit API",
       version: "1",
       description: [
-        "AI model calls paid with Kredit credits. 1,000 credits = $1 of usage.",
+        `AI model calls paid with Kredit credits. 1,000 credits = $1 of usage, about ₹${INR_PER_USD}.`,
         `Calls are billed at the provider's price with a ${Math.round(MARGIN * 100)}% fee, rounded up to a whole credit.`,
         "Three dialects, one key: OpenAI Chat Completions, OpenAI Responses and Anthropic Messages. Point any of their SDKs at this base URL.",
         `The model "${ECHO_MODEL}" answers without a provider and can be used to test a key.`,
@@ -302,7 +302,7 @@ export const GET = v1(() => {
             context_window: { type: "integer" },
             pricing: {
               type: ["object", "null"],
-              description: `Margin included, ${CREDITS_PER_USD} credits = $1. Language and embedding models list credits per million tokens; image models credits per image (or per million tokens, for the ones sold that way); video models credits per second at their cheapest resolution.`,
+              description: `Margin included, ${CREDITS_PER_USD} credits = $1 (about ₹${INR_PER_USD}). Language and embedding models list credits per million tokens; image models credits per image (or per million tokens, for the ones sold that way); video models credits per second at their cheapest resolution.`,
               properties: {
                 credits_per_million_input: { type: "number" },
                 credits_per_million_output: { type: "number" },

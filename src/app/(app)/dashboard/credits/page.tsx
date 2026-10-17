@@ -1,13 +1,13 @@
 import { costExamples } from "@/lib/cost-examples";
-import { formatCredits } from "@/lib/format";
-import { CREDITS_PER_USD, MARGIN, MIN_CREDITS_PER_REQUEST } from "@/lib/pricing";
+import { formatCredits, formatRupees } from "@/lib/format";
+import { CREDITS_PER_USD, MARGIN, MIN_CREDITS_PER_REQUEST, RUPEES_PER_1000 } from "@/lib/pricing";
 import { PageHeader, Stack } from "../page-header";
 import { BuyCredits, PurchaseHistory } from "../purchases";
 
 export const metadata = { title: "Credits — Kredit" };
 
 const rules = [
-  [`${formatCredits(CREDITS_PER_USD)} credits`, "pay for $1 of AI usage"],
+  [`${formatCredits(CREDITS_PER_USD)} credits`, `pay for ${formatRupees(RUPEES_PER_1000)} of AI usage`],
   [`${Math.round(MARGIN * 100)}% fee`, "you pay exactly what the model's provider charges, nothing on top"],
   [`${MIN_CREDITS_PER_REQUEST} credit`, "is the least any request costs; failed requests are free"],
 ];
@@ -39,7 +39,7 @@ export default function Credits() {
           <span className="text-right text-xs font-normal text-mist">Longer questions and longer answers cost more</span>
         </h2>
         <div className="overflow-x-auto">
-          {/* A phone shows the request and its price; the token counts and dollars need a wider screen. */}
+          {/* A phone shows the request and its price; the token counts and rupees need a wider screen. */}
           <table className="grid-table sm:min-w-[34rem]">
             <thead>
               <tr>
@@ -47,7 +47,7 @@ export default function Credits() {
                 <th>Size</th>
                 <th className="num max-sm:hidden">Tokens in / out</th>
                 <th className="num">Credits</th>
-                <th className="num max-sm:hidden">≈ USD</th>
+                <th className="num max-sm:hidden">≈ INR</th>
               </tr>
             </thead>
             <tbody>
@@ -59,7 +59,7 @@ export default function Credits() {
                     {formatCredits(example.inputTokens)} / {formatCredits(example.outputTokens)}
                   </td>
                   <td className="num">{formatCredits(example.credits)}</td>
-                  <td className="num text-mist max-sm:hidden">${example.usd.toFixed(3)}</td>
+                  <td className="num text-mist max-sm:hidden">{formatRupees(example.inr, 2)}</td>
                 </tr>
               ))}
             </tbody>
