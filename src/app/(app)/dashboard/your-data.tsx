@@ -27,7 +27,7 @@ export function YourData() {
       <div className="card p-5">
         <h3 className="text-sm font-medium text-fog">Clear the workspace</h3>
         <p className="mt-1.5 text-xs leading-relaxed text-mist">
-          Deletes every saved conversation, picture and clip for this wallet. Credits, keys and your activity stay.
+          Deletes every saved conversation, picture and clip in your account. Credits, keys and your activity stay.
           This cannot be undone.
         </p>
         <button

@@ -63,11 +63,11 @@ export function planSpend(input: {
 const holder = globalThis as { kreditHolds?: Map<string, number> };
 const holds = () => (holder.kreditHolds ??= new Map());
 
-export const heldFor = (address: string) => holds().get(address.toLowerCase()) ?? 0;
+export const heldFor = (userId: string) => holds().get(userId) ?? 0;
 
 // Returns the function that gives the credits back. Safe to call twice.
-export function hold(address: string, credits: number) {
-  const key = address.toLowerCase();
+export function hold(userId: string, credits: number) {
+  const key = userId;
   holds().set(key, heldFor(key) + credits);
   let released = false;
   return () => {

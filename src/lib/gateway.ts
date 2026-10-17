@@ -55,7 +55,7 @@ export function apiError(status: number, message: string, code: string) {
   return Response.json({ error: { message, type, code } }, { status });
 }
 
-export type Caller = { keyId: string; address: string; keyName?: string; keyPrefix?: string };
+export type Caller = { keyId: string; userId: string; keyName?: string; keyPrefix?: string };
 
 export type ErrorShape = typeof apiError;
 
@@ -71,11 +71,11 @@ export async function authenticate(request: Request, error: ErrorShape = apiErro
   const limited = rateLimited(key.id, error);
   if (limited) return limited;
   rateRemaining.set(request, RATE_LIMIT - (recentRequests.get(key.id)?.length ?? 0)); // for v1() to report
-  return { keyId: key.id, address: key.address, keyName: key.name, keyPrefix: key.prefix };
+  return { keyId: key.id, userId: key.userId, keyName: key.name, keyPrefix: key.prefix };
 }
 
 // Counts a request against `id` (a key, or a playground user). Returns the 429
-// once over the limit. `limit` lets the scan and claim endpoints use a tighter one.
+// once over the limit. `limit` lets an endpoint use a tighter one.
 export function rateLimited(id: string, error: ErrorShape = apiError, limit = RATE_LIMIT) {
   const now = Date.now();
   // Once a minute, forget callers who have gone quiet so the map can't grow forever.

@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { StopIcon } from "@/components/icons";
 import { ModelLogo } from "@/components/model-logo";
-import { WalletButton } from "@/components/wallet-button";
+import { SignInButton } from "@/components/sign-in-button";
 import { formatCredits } from "@/lib/format";
 import { SparkIcon } from "./icons";
 import type { Creation, Mode } from "./types";
@@ -63,7 +63,7 @@ export function Studio({ mode, state, creations, busy, blocked, estimate, onMake
               </p>
               {state === "signed-out" && (
                 <div className="mt-5">
-                  <WalletButton />
+                  <SignInButton />
                 </div>
               )}
               {state === "ready" && (

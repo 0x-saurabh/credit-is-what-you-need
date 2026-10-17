@@ -18,7 +18,7 @@ export function adviceFor(error, baseUrl) {
     case "invalid_api_key":
       return "Run `kredit login` with a key from your dashboard.";
     case "insufficient_credits":
-      return `Earn credits at ${baseUrl}/dashboard/earn or buy some at ${baseUrl}/dashboard/credits.`;
+      return `Buy credits at ${baseUrl}/dashboard/credits.`;
     case "model_not_found":
       return "Run `kredit models <search>` to find the id.";
     case "model_not_supported":

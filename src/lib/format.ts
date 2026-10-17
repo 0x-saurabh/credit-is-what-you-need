@@ -1,5 +1,19 @@
-export const shortAddress = (address: string) =>
-  `${address.slice(0, 6)}…${address.slice(-4)}`;
-
 export const formatCredits = (credits: number) =>
   new Intl.NumberFormat("en-US").format(credits);
+
+// What to call a person in a corner of the screen: their name, else the part
+// of their email before the @, else a stub of their id.
+export function displayName(user: { name?: string | null; email?: string | null; userId?: string | null }) {
+  if (user.name?.trim()) return user.name.trim();
+  if (user.email) return user.email.split("@")[0];
+  return user.userId ? `user ${user.userId.slice(-6)}` : "Signed in";
+}
+
+// 80000 paise -> "₹800.00"; 1000 cents -> "$10.00". Zero-decimal currencies are not used here.
+export function formatMoney(amount: number, currency: string) {
+  try {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase() }).format(amount / 100);
+  } catch {
+    return `${(amount / 100).toFixed(2)} ${currency.toUpperCase()}`;
+  }
+}

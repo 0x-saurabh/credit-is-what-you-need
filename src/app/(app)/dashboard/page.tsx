@@ -1,43 +1,34 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CopyButton } from "@/components/code-block";
-import { ArrowRightIcon, BoltIcon, CoinsIcon, KeyIcon, PlayIcon, UsersIcon } from "@/components/icons";
+import { ArrowRightIcon, CoinsIcon, KeyIcon, PlayIcon, TerminalIcon } from "@/components/icons";
 import { getSession } from "@/lib/session";
+import { getUser } from "@/lib/users";
 import { ActivityTable } from "./activity-table";
-import { ChainRecord } from "./chain-record";
 import { KpiStrip } from "./overview";
 import { PageHeader } from "./page-header";
 
 export const metadata = { title: "Overview — Kredit" };
 
 const nextSteps = [
-  { icon: BoltIcon, title: "Scan your on-chain record", text: "Turn past transactions into credits", href: "/dashboard/earn", action: "Scan record" },
+  { icon: CoinsIcon, title: "Buy credits", text: "Pay by card or UPI; credits land in your balance at once", href: "/dashboard/credits", action: "Buy credits" },
   { icon: KeyIcon, title: "Create an API key", text: "Use your credits in Cursor, Postman or code", href: "/dashboard/keys", action: "Create key" },
   { icon: PlayIcon, title: "Try a model", text: "Spend a few credits in the playground", href: "/playground", action: "Open playground" },
-  { icon: UsersIcon, title: "Invite a friend", text: "Earn a share of every claim they make", href: "/dashboard/earn#referrals", action: "Get link" },
-  { icon: CoinsIcon, title: "Top up with tokens", text: "For when a job needs more than you earned", href: "/dashboard/credits", action: "Buy credits" },
+  { icon: TerminalIcon, title: "Read the docs", text: "Every endpoint, with runnable examples", href: "/docs", action: "Open docs" },
 ];
 
 export default async function Overview() {
   const session = await getSession();
   if (!session) redirect("/");
+  const user = await getUser(session.userId);
 
   return (
     <>
-      <PageHeader
-        title="Overview"
-        lede={
-          <span className="flex items-center gap-1 font-mono">
-            <span className="break-all">{session.address}</span>
-            <CopyButton text={session.address} label="" className="-my-1" />
-          </span>
-        }
-      >
+      <PageHeader title="Overview" lede={user?.email ?? user?.name ?? "Signed in"}>
         <Link href="/dashboard/keys" className="btn-sm">
           Create key
         </Link>
-        <Link href="/dashboard/earn" className="btn-sm btn-sm-primary">
-          Scan my record
+        <Link href="/dashboard/credits" className="btn-sm btn-sm-primary">
+          Buy credits
         </Link>
       </PageHeader>
 
@@ -76,10 +67,6 @@ export default async function Overview() {
             ))}
           </ul>
         </section>
-
-        <div className="lg:col-span-12">
-          <ChainRecord address={session.address} />
-        </div>
       </div>
     </>
   );

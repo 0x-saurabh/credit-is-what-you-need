@@ -3,12 +3,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
-import { WalletButton } from "@/components/wallet-button";
+import { SignInButton } from "@/components/sign-in-button";
 import { api } from "@/lib/use-kredit-account";
 import { useSession } from "@/lib/use-session";
 
 type Status = { code: string; host: string | null; approved: boolean; expired: boolean };
-type Approved = { address: string; keyName: string; host: string | null };
+type Approved = { userId: string; keyName: string; host: string | null };
 
 const clean = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8).replace(/^(.{4})(.+)$/, "$1-$2");
 
@@ -16,7 +16,7 @@ export function Verify({ initialCode }: { initialCode: string }) {
   const session = useSession();
   const [code, setCode] = useState(clean(initialCode));
   const complete = code.replace("-", "").length === 8;
-  const signedIn = Boolean(session.address);
+  const signedIn = Boolean(session.userId);
 
   const status = useQuery({
     queryKey: ["cli-login", code],
@@ -30,11 +30,11 @@ export function Verify({ initialCode }: { initialCode: string }) {
     <div className="mt-6 space-y-6">
       <p className="text-sm leading-relaxed text-mist">
         A terminal running <code>kredit login</code> showed this code. Approving it makes an API key for that terminal
-        in your wallet&apos;s name; you can revoke it any time under{" "}
+        in your name; you can revoke it any time under{" "}
         <Link href="/dashboard/keys" className="text-fog underline decoration-line underline-offset-4">
           API keys
         </Link>
-        . The terminal never sees your wallet.
+        . The terminal never sees your login.
       </p>
 
       <label className="block">
@@ -53,7 +53,7 @@ export function Verify({ initialCode }: { initialCode: string }) {
         <div className="card p-5">
           <p className="text-sm text-fog">Sign in as the account the terminal should spend from.</p>
           <div className="mt-4">
-            <WalletButton label="Sign in" signedIn="account" />
+            <SignInButton label="Sign in" signedIn="account" />
           </div>
         </div>
       )}
@@ -98,7 +98,7 @@ export function Verify({ initialCode }: { initialCode: string }) {
         <div className="card border-accent/40 p-5" role="status">
           <p className="text-sm text-fog">Approved. You can close this tab; the terminal is collecting its key.</p>
           <p className="mt-1.5 text-xs text-mist">
-            Key <em>{approve.data.keyName}</em> now spends from {approve.data.address.slice(0, 6)}…{approve.data.address.slice(-4)}.
+            Key <em>{approve.data.keyName}</em> now spends from your balance.
           </p>
         </div>
       )}

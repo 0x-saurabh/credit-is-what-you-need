@@ -1,27 +1,10 @@
 import Link from "next/link";
-import { ECHO_MODEL } from "@/lib/gateway";
+import { ECHO_MODEL, RATE_LIMIT } from "@/lib/gateway";
 import { MAX_ACTIVE_KEYS } from "@/lib/limits";
 import { CREDITS_PER_USD, MARGIN, MIN_CREDITS_PER_REQUEST } from "@/lib/pricing";
-import { REFERRAL_PERCENT } from "@/lib/referral-rules";
-import { DAILY_TASK_CAP, MILESTONE_TXS_PER_DAY, MILESTONES, RULES_VERSION, TASK_CREDITS } from "@/lib/scoring";
-import { STREAK_MAX_BONUS, STREAK_MAX_DAY, STREAK_STEP, streakBonus } from "@/lib/streaks";
-import {
-  CALLS_FULL_PER_TARGET_PER_DAY,
-  CALLS_HALF_PER_TARGET_PER_DAY,
-  CLAIMS_PER_MINUTE,
-  DAILY_EMISSIONS_BUDGET,
-  DEPLOYS_PAID_PER_DAY,
-  HOLD_HOURS,
-  HOLD_THRESHOLD,
-  REFERRAL_DAILY_CAP,
-  REFERRAL_MIN_ACTIVE_DAYS,
-  REFERRAL_MIN_CLAIM,
-  SCANS_PER_MINUTE,
-  WALLET_MIN_AGE_DAYS,
-} from "@/lib/fairness";
 import { KeyPanel } from "../key-panel";
 import { OriginCode, Quickstart } from "../quickstart";
-import { Callout, Card, Cards, Doc, H2, number, Step, Steps, Table } from "../ui";
+import { Card, Cards, Doc, H2, number, Step, Steps, Table } from "../ui";
 
 const marginPercent = Math.round(MARGIN * 100);
 
@@ -31,23 +14,15 @@ export function QuickstartPage() {
       <Steps>
         <Step title="Sign in">
           <p>
-            Open <Link href="/dashboard">the dashboard</Link> and sign in: an email code, Google, or the wallet you
-            use on Robinhood Chain. A wallet with history there earns from the record scan; an email account gets an
-            embedded wallet that starts empty and can buy credits.
+            Open <Link href="/dashboard">the dashboard</Link> and sign in with an email code or Google. There is no
+            password and nothing to install. The session lasts seven days.
           </p>
         </Step>
-        <Step title="Prove it is you">
+        <Step title="Buy credits">
           <p>
-            A wallet signs one message inside the dialog; an email account confirms a code. No transaction, no gas,
-            no approval. The session lasts seven days.
-          </p>
-        </Step>
-        <Step title="Scan and claim">
-          <p>
-            On <Link href="/dashboard/earn">Earn</Link>, press <strong>Scan my record</strong>.
-            You get a receipt: every task your wallet has done, what it pays, milestones and streak bonus. Press{" "}
-            <strong>Claim</strong> and the credits land in your balance. On networks with on-chain receipts, your
-            wallet confirms one transaction first.
+            On <Link href="/dashboard/credits">Credits</Link>, pick an amount and pay by card, UPI or net banking. The
+            credits land in your balance as soon as the payment is confirmed. See{" "}
+            <Link href="/docs/credits/buying">Buying credits</Link>.
           </p>
         </Step>
         <Step title="Create an API key">
@@ -89,8 +64,8 @@ x-kredit-balance: 4999`}
         <Card href="/docs/integrations" title="Plug it into your tools">
           Cursor, Claude Code, the OpenAI and Anthropic SDKs, the AI SDK, LangChain.
         </Card>
-        <Card href="/docs/earn/scoring" title="Earn more">
-          What each transaction pays, and the bonuses on top.
+        <Card href="/docs/credits/buying" title="Buying credits">
+          Payment methods, and how a payment turns into credits.
         </Card>
         <Card href="/docs/api/billing" title="Understand the price">
           The formula, worked examples, and what happens when a balance runs thin.
@@ -102,60 +77,48 @@ x-kredit-balance: 4999`}
 
 export function HowItWorks() {
   return (
-    <Doc slug="how-it-works" lede="Kredit is a loop: activity on Robinhood Chain becomes credits, credits pay for AI, and every step is checked by rules anyone can read.">
+    <Doc slug="how-it-works" lede="Kredit is a loop: a payment becomes credits, credits pay for AI, and every call reports what it cost.">
       <OriginCode
         title="The loop"
-        code={`wallet activity on chain ──scan──▶ receipt ──claim──▶ credits ──API key / playground──▶ AI answers
-                                                       ▲
-                       streak bonus, referral shares, token top-ups ┘`}
+        code={`card / UPI payment ──webhook──▶ credits ──API key / playground──▶ AI answers
+                                  ▲                                  │
+                                  └──── x-kredit-balance in every reply ┘`}
       />
 
-      <H2>1. Your record is read from the chain</H2>
+      <H2>1. A payment becomes credits</H2>
       <p>
-        When you scan, the server asks the Robinhood Chain explorer for the transactions your wallet <em>sent</em>,
-        up to the latest 1,000. Only transactions you signed count; incoming transfers and other people&apos;s calls
-        do not. Pending transactions are skipped. The scan is remembered for 60 seconds so that claiming right after
-        scanning pays exactly what the receipt showed. See <Link href="/docs/earn/record">Your on-chain record</Link>.
+        You pay a payment provider on the Credits page. The provider confirms the payment to the server over a signed
+        webhook, and the server writes the credits to your balance: {number(CREDITS_PER_USD)} credits for every $1
+        paid, at the price shown before you paid. A payment is written exactly once, however many times the provider
+        repeats itself. See <Link href="/docs/credits/buying">Buying credits</Link>.
       </p>
 
-      <H2>2. Fixed rules turn transactions into credits</H2>
+      <H2>2. Credits are a ledger</H2>
       <p>
-        Each successful transaction is a task: a deployment pays {TASK_CREDITS.deploy}, a contract call{" "}
-        {TASK_CREDITS.contract_call}, a plain transfer {TASK_CREDITS.transfer}. Failed transactions pay nothing. On top
-        come one-time milestones, a daily streak bonus, and a cap of {number(DAILY_TASK_CAP)} task credits per wallet
-        per day. The rules are versioned (<code>RULES_VERSION = {RULES_VERSION}</code>) and every number on this site is
-        read from the same code that does the scoring. See <Link href="/docs/earn/scoring">Tasks and milestones</Link>.
+        Your balance is the sum of your ledger rows: purchases and grants are positive, spending is negative. Nothing
+        is ever edited, only added. Every row is on <Link href="/dashboard/activity">Activity</Link>.
       </p>
 
-      <H2>3. Everything pays once</H2>
+      <H2>3. Credits pay for AI</H2>
       <p>
-        A transaction hash can be claimed one time, ever, by anyone, on that network. Milestones and streak days pay
-        once each. The daily cap holds across claims. Scan as often as you like; a second claim only pays for new
-        activity. Claims are planned and written in one database transaction, so two claims racing each other cannot
-        both be paid for the same work. See <Link href="/docs/earn/claims">Claims and receipts</Link>.
+        A key or the playground calls any model the server offers; the call costs exactly what the provider charged,
+        with a {marginPercent}% fee on top, at least {MIN_CREDITS_PER_REQUEST} credit, and the bill arrives in the
+        response headers. Kredit never lets an answer die halfway because credits ran out: a thin balance shortens the
+        answer before the call goes out. See <Link href="/docs/api/billing">Pricing and billing</Link>.
       </p>
 
-      <H2>4. Credits are a ledger</H2>
+      <H2>4. Behind the key</H2>
       <p>
-        Your balance is the sum of your ledger rows: claims, milestones, streak bonuses, referral shares and top-ups
-        are positive, spending is negative. Nothing is ever edited, only added. Claims are public as on-chain
-        receipts; what you spend credits on is not.
-      </p>
-
-      <H2>5. Credits pay for AI</H2>
-      <p>
-        {number(CREDITS_PER_USD)} credits buy $1 of AI usage. A key or the playground calls any model the server
-        offers; the call costs exactly what the provider charged, with a {marginPercent}% fee on top, at least{" "}
-        {MIN_CREDITS_PER_REQUEST} credit, and the bill arrives in the response headers. Kredit never lets an answer
-        die halfway because credits ran out: a thin balance shortens the answer before the call goes out. See{" "}
-        <Link href="/docs/api/billing">Pricing and billing</Link>.
+        Kredit forwards each call to Vercel AI Gateway (or another OpenAI-compatible provider the operator has
+        configured), which routes it to the model&apos;s maker. The gateway bills the operator; your credits cover that
+        bill. Your prompt reaches the model and nobody else, and it is never stored by Kredit.
       </p>
 
       <H2>What Kredit is not</H2>
       <ul>
-        <li>Not a token. Credits are an off-chain ledger you spend on AI; they are not transferable.</li>
-        <li>Not custodial. Signing in costs no gas and grants no approvals. Top-ups go from your wallet straight to the treasury.</li>
-        <li>Not affiliated with Robinhood. Kredit is an independent project built on Robinhood Chain.</li>
+        <li>Not a subscription. You buy credits when you need them, and they do not expire.</li>
+        <li>Not a token or a currency. Credits are prepaid model usage, kept in a ledger, and are not transferable.</li>
+        <li>Not a store of your card details. Payments happen at the provider; Kredit only hears that one succeeded.</li>
       </ul>
     </Doc>
   );
@@ -173,41 +136,25 @@ export function Rules() {
           ["Minimum charge per call", `${MIN_CREDITS_PER_REQUEST} credit`],
           ["Rounding", "Up to the next whole credit"],
           ["Failed calls", "Free"],
+          ["Expiry", "Never"],
         ]}
       />
-      <H2>Earning</H2>
+      <H2>Buying</H2>
       <Table
         head={["Rule", "Value"]}
         rows={[
-          ["Deploy a contract", `${TASK_CREDITS.deploy} credits`],
-          ["Call a contract", `${TASK_CREDITS.contract_call} credits`],
-          ["Send a transfer", `${TASK_CREDITS.transfer} credits`],
-          ["Use a partner protocol", "Set per partner (none listed yet)"],
-          ["Failed transaction", "0 credits"],
-          ["Milestones", MILESTONES.map((m) => `${m.txs} txs → ${number(m.credits)}`).join(" · ")],
-          ["Transactions per day counted toward milestones", `${MILESTONE_TXS_PER_DAY}`],
-          ["Daily cap on task credits", `${number(DAILY_TASK_CAP)} per wallet per UTC day`],
-          ["Streak bonus", `${STREAK_STEP} × streak day from day 2, at most ${STREAK_MAX_BONUS} a day (day ${STREAK_MAX_DAY}+); day 2 = ${streakBonus(2)}, day 5 = ${streakBonus(5)}`],
-          ["Referral share", `${REFERRAL_PERCENT}% of every claim by a wallet you invited, rounded down`],
-          ["Referral gates", `Invitee active on ${REFERRAL_MIN_ACTIVE_DAYS}+ days, claim of ${REFERRAL_MIN_CLAIM}+ credits, at most ${number(REFERRAL_DAILY_CAP)} a day per inviter`],
-          ["Wallet age before the first claim", `${WALLET_MIN_AGE_DAYS} days since its first transaction`],
-          ["Dust transfers", "A transfer must move at least 0.0001 ETH to count"],
-          ["Repeat calls to one contract, per day", `First ${CALLS_FULL_PER_TARGET_PER_DAY} full, next ${CALLS_HALF_PER_TARGET_PER_DAY} half, then nothing`],
-          ["Deploys paid per day", `${DEPLOYS_PAID_PER_DAY}`],
-          ["Daily pool for everyone", `${number(DAILY_EMISSIONS_BUDGET)} task credits per UTC day; the rest waits for the next day`],
-          ["Large claims from risky records", `Over ${number(HOLD_THRESHOLD)} credits: held ${HOLD_HOURS} hours`],
-          ["Scan and claim limits", `${SCANS_PER_MINUTE} scans and ${CLAIMS_PER_MINUTE} claims a minute per wallet`],
-          ["Scan depth", "Latest 1,000 transactions your wallet sent"],
-          ["Scan cache", "60 seconds"],
-          ["Rules version on receipts", `${RULES_VERSION}`],
+          ["Payment methods", "Card, UPI, net banking, through the configured payment provider"],
+          ["When credits land", "On the provider's webhook confirming the payment"],
+          ["A payment pays", "Once, keyed by the provider's payment id"],
+          ["Refunds", "Final once written; a reversed payment takes its credits back"],
         ]}
       />
       <H2>Spending</H2>
       <Table
         head={["Rule", "Value"]}
         rows={[
-          ["Rate limit", "60 requests per minute per key; 60 per minute per wallet in the playground"],
-          ["Active API keys", `${MAX_ACTIVE_KEYS} per wallet`],
+          ["Rate limit", `${RATE_LIMIT} requests per minute per key; ${RATE_LIMIT} per minute per account in the playground`],
+          ["Active API keys", `${MAX_ACTIVE_KEYS} per account`],
           ["Smallest answer before a call is refused", "16 output tokens"],
           ["Images per request", "1 to 4"],
           ["Video length", "1 to 20 seconds"],
@@ -217,19 +164,11 @@ export function Rules() {
       <Table
         head={["Rule", "Value"]}
         rows={[
+          ["Sign-in", "Email code or Google, through Privy"],
           ["Session length", "7 days"],
-          ["Invite link cookie", "30 days"],
-          ["Signed on-chain receipt", "Good for 10 minutes"],
-          ["Display name", "2 to 24 letters, digits, spaces, dots, dashes or underscores"],
+          ["CLI login code", "Good for 10 minutes"],
         ]}
       />
-      <Callout kind="tip">
-        <p>
-          Want to see the rules applied to an imagined history? The{" "}
-          <Link href="/#estimate">estimator on the home page</Link> runs the real scoring function on the sliders you
-          set.
-        </p>
-      </Callout>
     </Doc>
   );
 }

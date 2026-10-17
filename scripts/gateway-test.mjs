@@ -1,16 +1,14 @@
-// End-to-end check of claim -> key -> gateway -> balance.
-// Needs a server started with the same SESSION_SECRET as .env.local:
+// End-to-end check of purchase -> key -> gateway -> balance.
+// Needs a server started with the same SESSION_SECRET and DATABASE_URL as .env.local:
 //   DATABASE_URL=postgres://… npx next start -p 3458
 //   DATABASE_URL=postgres://… BASE_URL=http://localhost:3458 node scripts/gateway-test.mjs
-// It signs a session locally for a real, active mainnet wallet (local testing
-// only: real users must sign with their wallet). It expects off-chain claims,
-// so start the server without RECEIPTS_ADDRESS_MAINNET; the on-chain path is
-// covered by scripts/mainnet-check.mjs and scripts/receipts-test.mjs.
-import { sessionCookie } from "./lib/test-session.mjs";
+// Credits are seeded the way the payment webhook writes them (local testing only).
+import { query } from "./lib/db.mjs";
+import { sessionCookie, testUserId } from "./lib/test-session.mjs";
 
 const base = process.env.BASE_URL ?? "http://localhost:3000";
-const WALLET = "0x0695BCD9c32d90fdD4AD75e2aEE29213Db1e771D";
-const cookie = await sessionCookie(WALLET);
+const USER = testUserId("gateway");
+const cookie = await sessionCookie(USER);
 
 const results = [];
 const check = (name, pass, detail = "") => { results.push(pass); console.log(`${pass ? "PASS" : "FAIL"}  ${name} ${detail}`); };
@@ -27,20 +25,17 @@ check("new account starts at zero", start.balance === 0 && start.keys.length ===
 const created = await (await app("/api/keys", { method: "POST", body: JSON.stringify({ name: "test" }) })).json();
 check("key is created and shown once", created.key?.startsWith("kred_sk_"));
 const broke = await chat(created.key, hello);
-check("gateway refuses a wallet with no credits", broke.status === 402, `(${(await broke.json()).error.code})`);
+check("gateway refuses an account with no credits", broke.status === 402, `(${(await broke.json()).error.code})`);
 
-// --- claim
-const record = await (await app("/api/record?network=mainnet")).json();
-check("scan shows claimable credits", record.claimable > 0 && record.claimable === record.total, `(${record.claimable})`);
-const claimed = await (await app("/api/claim", { method: "POST", body: JSON.stringify({ network: "mainnet" }) })).json();
-check("claim pays exactly what the receipt showed", claimed.granted === record.claimable && claimed.balance === record.claimable);
-const streakLine = record.lines.find((l) => l.label.startsWith("Streak bonus"));
-check("the streak bonus on the receipt is paid with the claim", (streakLine?.credits ?? 0) === claimed.streak, `(${claimed.streak} credits)`);
-check("a wallet nobody invited pays no referral", claimed.referral === 0);
-const again = await (await app("/api/claim", { method: "POST", body: JSON.stringify({ network: "mainnet" }) })).json();
-check("claiming twice pays nothing the second time", again.granted === 0 && again.balance === claimed.balance);
-const rescanned = await (await app("/api/record?network=mainnet")).json();
-check("receipt now shows nothing left to claim", rescanned.claimable === 0);
+// --- a purchase lands
+const BOUGHT = 2000;
+const paymentId = `gateway-test-${Date.now()}`;
+await query("INSERT INTO purchases (id, user_id, provider, amount, currency, credits) VALUES (?, ?, 'manual', 200, 'USD', ?)", [`manual:${paymentId}`, USER, BOUGHT]);
+await query("INSERT INTO ledger (user_id, amount, kind, memo) VALUES (?, ?, 'purchase', 'Paid $2.00 through Kredit')", [USER, BOUGHT]);
+const funded = await (await app("/api/account")).json();
+check("the purchase is on the balance and in the list", funded.balance === BOUGHT && funded.purchases[0]?.id === `manual:${paymentId}`);
+const twice = await query("INSERT INTO purchases (id, user_id, provider, amount, currency, credits) VALUES (?, ?, 'manual', 200, 'USD', ?) ON CONFLICT DO NOTHING", [`manual:${paymentId}`, USER, BOUGHT]);
+check("the same payment cannot be written twice", twice.rowCount === 0);
 
 // --- gateway
 const noKey = await fetch(`${base}/v1/chat/completions`, { method: "POST", body: JSON.stringify(hello) });
@@ -53,7 +48,7 @@ check("gateway rejects a body without messages", bad.status === 400);
 const reply = await chat(created.key, hello);
 const replyBody = await reply.json();
 check("echo model answers in OpenAI format", reply.status === 200 && replyBody.choices[0].message.content === "Kredit echo: hello kredit");
-check("response reports the charge", reply.headers.get("x-kredit-credits-charged") === "1" && reply.headers.get("x-kredit-balance") === String(claimed.balance - 1));
+check("response reports the charge", reply.headers.get("x-kredit-credits-charged") === "1" && reply.headers.get("x-kredit-balance") === String(BOUGHT - 1));
 
 const streamed = await chat(created.key, { ...hello, stream: true });
 const sse = await streamed.text();
@@ -67,9 +62,12 @@ check("an unlisted model is refused with a clear reason", (real.status === 503 &
 const models = await (await fetch(`${base}/v1/models`, { headers: { authorization: `Bearer ${created.key}` } })).json();
 check("/v1/models lists the echo model", models.data.some((m) => m.id === "kredit/echo"));
 
+const v1Account = await (await fetch(`${base}/v1/account`, { headers: { authorization: `Bearer ${created.key}` } })).json();
+check("/v1/account names the user behind the key", v1Account.user_id === USER && typeof v1Account.email === "string" && v1Account.balance === BOUGHT - 2);
+
 const after = await (await app("/api/account")).json();
-check("balance dropped by the two paid calls", after.balance === claimed.balance - 2, `(${claimed.balance} -> ${after.balance})`);
-check("activity shows the claim and the spending", after.activity.some((e) => e.kind === "claim") && after.activity.filter((e) => e.kind === "spend").length === 2);
+check("balance dropped by the two paid calls", after.balance === BOUGHT - 2, `(${BOUGHT} -> ${after.balance})`);
+check("activity shows the purchase and the spending", after.activity.some((e) => e.kind === "purchase") && after.activity.filter((e) => e.kind === "spend").length === 2);
 check("key shows as used", Boolean(after.keys[0].lastUsedAt));
 
 // --- revoke

@@ -41,13 +41,6 @@ export const SearchIcon = icon(
 export const PlayIcon = icon(<path d="M8 5.5v13l10.5-6.5L8 5.5Z" />);
 export const SendIcon = icon(<path d="M12 19V5m-6 6 6-6 6 6" />);
 export const StopIcon = icon(<rect x="7" y="7" width="10" height="10" rx="2" />);
-export const WalletIcon = icon(
-  <>
-    <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H17a2 2 0 0 1 2 2v1" />
-    <path d="M4 7.5V17a2.5 2.5 0 0 0 2.5 2.5H18a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 1 4 7.5Z" />
-    <path d="M16 13.75h.01" />
-  </>,
-);
 export const KeyIcon = icon(
   <>
     <circle cx="7.5" cy="15.5" r="4.5" />

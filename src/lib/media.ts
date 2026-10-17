@@ -19,8 +19,8 @@ type Ready = { price: ModelPrice; gateway: ReturnType<typeof createGateway> } | 
 // Everything both kinds of call check first: a provider that can do it, a
 // priced model of the right kind, and a balance above zero.
 async function prepare(caller: Caller, model: string, kind: "image" | "video", error = apiError): Promise<Ready> {
-  if ((await getBalance(caller.address)) <= 0) {
-    return error(402, "You are out of credits. Earn more on your Kredit dashboard.", "insufficient_credits");
+  if ((await getBalance(caller.userId)) <= 0) {
+    return error(402, "You are out of credits. Buy more on your Kredit dashboard.", "insufficient_credits");
   }
   const { baseUrl, apiKey } = upstream();
   if (!apiKey) {
@@ -46,7 +46,7 @@ async function prepare(caller: Caller, model: string, kind: "image" | "video", e
 const refuse = (needed: number, held: number, error = apiError) =>
   error(
     402,
-    `This call needs about ${needed} credits, more than your balance covers${held > 0 ? " while your other calls are still running" : ""}. Pick a cheaper model or earn more on your Kredit dashboard.`,
+    `This call needs about ${needed} credits, more than your balance covers${held > 0 ? " while your other calls are still running" : ""}. Pick a cheaper model or buy more on your Kredit dashboard.`,
     "insufficient_credits",
   );
 
@@ -70,9 +70,9 @@ export async function makeImages(caller: Caller, request: ImageRequest, signal?:
     price.perImage !== undefined
       ? creditsForUsd(n * price.perImage)
       : creditsFor(price, { inputTokens: promptTokens, outputTokens: n * ASSUMED_IMAGE_OUTPUT_TOKENS });
-  const held = heldFor(caller.address);
-  if ((await getBalance(caller.address)) - held < worstCase) return refuse(worstCase, held, error);
-  const release = hold(caller.address, worstCase);
+  const held = heldFor(caller.userId);
+  if ((await getBalance(caller.userId)) - held < worstCase) return refuse(worstCase, held, error);
+  const release = hold(caller.userId, worstCase);
 
   try {
     const result = await generateImage({
@@ -137,9 +137,9 @@ export async function makeVideo(caller: Caller, request: VideoRequest, signal?: 
     return error(400, `"${request.model}" does not offer ${resolution}${generateAudio ? " with audio" : ""}. It offers: ${offered}.`, "invalid_body");
   }
   const credits = creditsForUsd(duration * rate.usd);
-  const held = heldFor(caller.address);
-  if ((await getBalance(caller.address)) - held < credits) return refuse(credits, held, error);
-  const release = hold(caller.address, credits);
+  const held = heldFor(caller.userId);
+  if ((await getBalance(caller.userId)) - held < credits) return refuse(credits, held, error);
+  const release = hold(caller.userId, credits);
 
   try {
     const result = await generateVideo({

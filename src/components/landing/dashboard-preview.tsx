@@ -7,9 +7,6 @@ import { costExamples } from "@/lib/cost-examples";
 import { formatCredits } from "@/lib/format";
 import { MAX_ACTIVE_KEYS } from "@/lib/limits";
 import { CREDITS_PER_USD } from "@/lib/pricing";
-import { REFERRAL_PERCENT } from "@/lib/referral-rules";
-import { MILESTONES, TASK_CREDITS } from "@/lib/scoring";
-import { streakBonus } from "@/lib/streaks";
 
 type Entry = { kind: string; detail: string; amount: number };
 
@@ -22,14 +19,14 @@ const spend = (example: (typeof costExamples)[number]): Entry => ({
 
 // An invented ledger, replayed in order. Rates and prices still come from the real rules.
 const entries: Entry[] = [
-  { kind: "Tasks", detail: "37 tasks on Robinhood Chain", amount: 37 * TASK_CREDITS.contract_call },
-  { kind: "Streak", detail: "day 7 in a row", amount: streakBonus(7) },
+  { kind: "Bought", detail: "Paid ₹850.00 through Razorpay", amount: 10 * CREDITS_PER_USD },
   spend(costExamples[2]),
-  { kind: "Referral", detail: `${REFERRAL_PERCENT}% of a claim by 0x3f9a…c21e`, amount: 113 },
   spend(costExamples[1]),
-  { kind: "Milestone", detail: `Reached ${MILESTONES[1].txs} transactions`, amount: MILESTONES[1].credits },
+  { kind: "Bought", detail: "Paid $20.00 through Dodo Payments", amount: 20 * CREDITS_PER_USD },
   spend(costExamples[3]),
-  { kind: "Tasks", detail: "1 deployment, 4 interactions", amount: TASK_CREDITS.deploy + 4 * TASK_CREDITS.contract_call },
+  spend(costExamples[0]),
+  { kind: "Added", detail: "Welcome credits", amount: 500 },
+  spend(costExamples[2]),
 ];
 
 const START = { earned: 12_480, spent: 3_120 };
@@ -104,7 +101,7 @@ export const DashboardPreview = memo(function DashboardPreview() {
               <p className="kpi-note">{dollars(totals.balance)}</p>
             </div>
             <div className="kpi px-4">
-              <p className="kpi-label">Earned</p>
+              <p className="kpi-label">Added</p>
               <p className="kpi-value text-xl sm:text-2xl">
                 <CountUp value={totals.earned} duration={700} />
               </p>

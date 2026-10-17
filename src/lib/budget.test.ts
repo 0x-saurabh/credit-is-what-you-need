@@ -57,10 +57,10 @@ test("attachments count flat, not by the size of their base64", () => {
   assert.equal(tokens, 1003);
 });
 
-test("holds add up per wallet and are given back once", () => {
-  const ALICE = "0xAAAAaaaaAAAAaaaaAAAAaaaaAAAAaaaaAAAAaaaa";
+test("holds add up per user and are given back once", () => {
+  const ALICE = "did:privy:alice";
   const first = hold(ALICE, 100);
-  const second = hold(ALICE.toLowerCase(), 40);
+  const second = hold(ALICE, 40);
   assert.equal(heldFor(ALICE), 140);
   first();
   first(); // a second release changes nothing

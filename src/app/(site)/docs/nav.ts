@@ -9,20 +9,15 @@ export const docGroups: DocGroup[] = [
     title: "Getting started",
     pages: [
       { slug: "", title: "Introduction", description: "What Kredit is, who it is for and how the pieces fit." },
-      { slug: "quickstart", title: "Quickstart", description: "From a wallet to a working API call in five minutes." },
-      { slug: "how-it-works", title: "How it works", description: "Earn, claim, spend: the loop behind every credit." },
+      { slug: "quickstart", title: "Quickstart", description: "From a sign-in to a working API call in five minutes." },
+      { slug: "how-it-works", title: "How it works", description: "Buy, spend, read the bill: the loop behind every credit." },
       { slug: "rules", title: "Rules at a glance", description: "Every number the platform runs on, on one page." },
     ],
   },
   {
-    title: "Earn credits",
+    title: "Credits",
     pages: [
-      { slug: "earn/record", title: "Your on-chain record", description: "What the scanner reads and how it turns transactions into a receipt." },
-      { slug: "earn/scoring", title: "Tasks and milestones", description: "What each kind of transaction pays, the daily cap and one-time bonuses." },
-      { slug: "earn/streaks", title: "Streaks", description: "Consecutive active days pay a growing daily bonus." },
-      { slug: "earn/referrals", title: "Referrals", description: "Invite a wallet and earn a share of every claim it makes." },
-      { slug: "earn/claims", title: "Claims and receipts", description: "How a claim is paid, and the on-chain receipt that proves it." },
-      { slug: "earn/top-ups", title: "Buying credits", description: "Pay in USDG or ETH when you need more than you earned." },
+      { slug: "credits/buying", title: "Buying credits", description: "Pay by card, UPI or net banking; how a payment becomes credits." },
     ],
   },
   {
@@ -40,7 +35,7 @@ export const docGroups: DocGroup[] = [
       { slug: "api/streaming", title: "Streaming", description: "Server-sent events and how streamed calls are billed." },
       { slug: "api/billing", title: "Pricing and billing", description: "What a call costs, how it is computed and the headers that report it." },
       { slug: "api/errors", title: "Errors", description: "Every status code and error code the gateway returns." },
-      { slug: "api/limits", title: "Rate limits", description: "Requests per minute, keys per wallet, request sizes." },
+      { slug: "api/limits", title: "Rate limits", description: "Requests per minute, keys per account, request sizes." },
       { slug: "api/account", title: "Account and usage", description: "GET /v1/account and GET /v1/usage." },
       { slug: "api/openapi", title: "OpenAPI", description: "The machine-readable description of the API." },
     ],
@@ -54,18 +49,17 @@ export const docGroups: DocGroup[] = [
   {
     title: "Platform",
     pages: [
-      { slug: "platform/sign-in", title: "Sign-in and wallets", description: "Email, Google or a wallet through Privy; sessions; embedded wallets." },
+      { slug: "platform/sign-in", title: "Sign-in and sessions", description: "Email or Google through Privy; how a session works." },
       { slug: "platform/dashboard", title: "Dashboard", description: "Every signed-in page and what it does." },
       { slug: "platform/playground", title: "Workspace", description: "Chat with any model, keep the conversation, compare two models, make pictures and clips." },
-      { slug: "platform/security", title: "Privacy and security", description: "What is stored, what is public, and how keys and sessions are protected." },
+      { slug: "platform/security", title: "Privacy and security", description: "What is stored, and how keys and sessions are protected." },
     ],
   },
   {
     title: "Legal",
     pages: [
-      { slug: "legal/fairness", title: "Fair play", description: "The rules that keep earned credits for real use of the chain, with every number." },
       { slug: "legal/privacy", title: "Privacy policy", description: "What is stored, for how long, who else sees it, and what never is." },
-      { slug: "legal/terms", title: "Terms of service", description: "What a credit is, what earns one, and what forfeits one." },
+      { slug: "legal/terms", title: "Terms of service", description: "What a credit is, how it is bought, and what you may do with one." },
     ],
   },
 ];

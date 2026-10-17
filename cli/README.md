@@ -5,7 +5,7 @@ Kredit from the terminal: chat with any model, check your balance, read your bil
 ```
 npm install -g @kredit/cli
 kredit login
-kredit chat "explain gas fees in one line"
+kredit chat "explain rate limits in one line"
 ```
 
 Needs Node 22 or newer. Keys come from [usekredit.space/dashboard/keys](https://usekredit.space/dashboard/keys).
@@ -16,7 +16,7 @@ Needs Node 22 or newer. Keys come from [usekredit.space/dashboard/keys](https://
 | --- | --- |
 | `kredit login [key]` | Saves a key on this machine (`~/.config/kredit/config.json`, readable by you alone). Without an argument it asks, and never echoes the key. |
 | `kredit logout` | Forgets the saved key. |
-| `kredit whoami` | Your wallet, key, balance, what is held by running calls, and what you have spent. |
+| `kredit whoami` | Your account, key, balance, what is held by running calls, and what you have spent. |
 | `kredit chat [prompt]` | Asks a model and streams the reply. Pipe text in, or give no prompt to start a conversation (`/model` switches, `/new` starts over, `/quit` leaves). |
 | `kredit models [search]` | The catalog, grouped by maker. An exact id shows one model in full, with the command that takes it. |
 | `kredit usage` | What your key spent, by model and call by call. `--from` and `--to` narrow the period. |
@@ -31,7 +31,7 @@ Every command takes `--json` for scripts. After each paid call the cost and what
 
 ```sh
 # A quick question, then a longer conversation with a particular model
-kredit chat "what is a nonce?"
+kredit chat "what is a race condition?"
 kredit chat -m anthropic/claude-haiku-4.5
 
 # Summarize a file
@@ -60,8 +60,8 @@ kredit usage --from 2026-09-01
 Failures print the server's message and, where there is one, the thing to do about it:
 
 ```
-✗ You are out of credits. Earn more on your Kredit dashboard.
-  Earn credits at https://usekredit.space/dashboard/earn or buy some at https://usekredit.space/dashboard/credits.
+✗ You are out of credits. Buy more on your Kredit dashboard.
+  Buy credits at https://usekredit.space/dashboard/credits.
   request 8f1c…
 ```
 

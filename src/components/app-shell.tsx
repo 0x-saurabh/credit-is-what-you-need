@@ -7,7 +7,6 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { Logo } from "@/components/header";
 import {
   ActivityIcon,
-  BoltIcon,
   CloseIcon,
   CoinsIcon,
   GridIcon,
@@ -22,8 +21,8 @@ import {
 } from "@/components/icons";
 import { LibraryIcon } from "@/app/(app)/playground/icons";
 import { Identicon } from "@/components/identicon";
-import { WalletButton } from "@/components/wallet-button";
-import { formatCredits, shortAddress } from "@/lib/format";
+import { SignInButton } from "@/components/sign-in-button";
+import { displayName, formatCredits } from "@/lib/format";
 import { ACCOUNT_KEY, api, type AccountResponse } from "@/lib/use-kredit-account";
 import { useSession } from "@/lib/use-session";
 
@@ -32,8 +31,7 @@ type Destination = { name: string; href: string; icon: (props: { className?: str
 // Ordered by how often people need them, not alphabetically.
 const product: Destination[] = [
   { name: "Overview", href: "/dashboard", icon: GridIcon },
-  { name: "Earn credits", href: "/dashboard/earn", icon: BoltIcon },
-  { name: "API keys", href: "/dashboard/keys", icon: KeyIcon },
+    { name: "API keys", href: "/dashboard/keys", icon: KeyIcon },
   { name: "Playground", href: "/playground", icon: PlayIcon },
   { name: "Library", href: "/playground/library", icon: LibraryIcon },
   { name: "Activity", href: "/dashboard/activity", icon: ActivityIcon },
@@ -144,7 +142,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const account = useQuery({
     queryKey: ACCOUNT_KEY,
     queryFn: () => api<AccountResponse>("/api/account"),
-    enabled: Boolean(session.address),
+    enabled: Boolean(session.userId),
   });
 
   useEffect(() => {
@@ -195,12 +193,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="border-t border-line p-3">
-          {session.address ? (
+          {session.userId ? (
             <div className="flex items-center gap-2.5">
-              <Identicon address={session.address} className="size-8" />
+              <Identicon seed={session.userId} className="size-8" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[0.8125rem] font-medium">{shortAddress(session.address)}</p>
-                <p className="truncate font-mono text-[0.6875rem] text-mist">{shortAddress(session.address)}</p>
+                <p className="truncate text-[0.8125rem] font-medium">{displayName(session)}</p>
+                <p className="truncate text-[0.6875rem] text-mist">{session.email ?? "Signed in"}</p>
               </div>
               <button
                 type="button"
@@ -213,7 +211,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
             </div>
           ) : (
-            !session.isLoading && <WalletButton label="Sign in" />
+            !session.isLoading && <SignInButton label="Sign in" />
           )}
         </div>
       </aside>

@@ -1,6 +1,6 @@
 import { ApiError, client } from "../api.js";
 import { clearConfig, configPath, readConfig, settings, writeConfig } from "../config.js";
-import { accent, ask, bold, credits, dim, fail, fields, ok, printJson, shortAddress, spinner, usd } from "../ui.js";
+import { accent, ask, bold, credits, dim, fail, fields, ok, printJson, spinner, usd } from "../ui.js";
 
 // login, logout, whoami, config: who you are and where the key is kept.
 
@@ -22,7 +22,7 @@ export async function login(keyArg, options, command) {
     const { data } = await client({ url: baseUrl, key }).get("/v1/account");
     spin.stop();
     writeConfig({ ...readConfig(), key, baseUrl });
-    process.stdout.write(`${ok(`Signed in as ${bold(shortAddress(data.address))}`)} ${dim(`· key "${data.key.name}" · ${credits(data.balance)} credits`)}\n`);
+    process.stdout.write(`${ok(`Signed in as ${bold(data.email ?? data.user_id)}`)} ${dim(`· key "${data.key.name}" · ${credits(data.balance)} credits`)}\n`);
     process.stdout.write(dim(`  Saved to ${configPath}\n`));
   } catch (error) {
     spin.stop();
@@ -44,7 +44,7 @@ export async function whoami(options, command) {
   const api = client(command.optsWithGlobals());
   const { data } = await api.get("/v1/account");
   if (options.json) return printJson(data);
-  process.stdout.write(`${bold(data.address)} ${dim(`via key "${data.key.name}" (${data.key.prefix})`)}\n\n`);
+  process.stdout.write(`${bold(data.email ?? data.user_id)} ${dim(`via key "${data.key.name}" (${data.key.prefix})`)}\n\n`);
   process.stdout.write(
     `${fields([
       ["Balance", `${accent(credits(data.balance))} credits ${dim(`≈ ${usd(data.balance)} of AI usage`)}`],

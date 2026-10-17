@@ -1,117 +1,37 @@
 import Link from "next/link";
 import { Fragment } from "react";
 import { ApiDemo } from "@/components/api-demo";
-import { Estimator } from "@/components/estimator";
-import { ActivityIcon, ArrowRightIcon, ArrowUpRightIcon, CheckIcon, PlusIcon, SparkIcon, UsersIcon } from "@/components/icons";
+import { ArrowRightIcon, CheckIcon, PlusIcon, SparkIcon } from "@/components/icons";
 import { DashboardPreview } from "@/components/landing/dashboard-preview";
-import { CreditMeter } from "@/components/landing/credit-meter";
 import { LoopBeam } from "@/components/landing/loop-beam";
 import { ModelOrbit } from "@/components/landing/model-orbit";
 import { SectionHeading } from "@/components/landing/section-heading";
-import { HeaderFocus, KeyStatus, ModelStream, PromptBar, TaskFeed } from "@/components/live-bento";
+import { HeaderFocus, KeyStatus, ModelStream, PromptBar, UsageFeed } from "@/components/live-bento";
 import { CountUp } from "@/components/motion/count-up";
 import { Reveal } from "@/components/motion/reveal";
-import { Tilt } from "@/components/motion/tilt";
-import { TopUpTeaser } from "@/components/top-up-teaser";
-import { WalletButton } from "@/components/wallet-button";
+import { SignInButton } from "@/components/sign-in-button";
 import { costExamples } from "@/lib/cost-examples";
 import { formatCredits } from "@/lib/format";
 import { MAX_ACTIVE_KEYS } from "@/lib/limits";
 import { CREDITS_PER_USD, MARGIN, MIN_CREDITS_PER_REQUEST } from "@/lib/pricing";
-import { REFERRAL_PERCENT } from "@/lib/referral-rules";
-import { DAILY_TASK_CAP, MILESTONES, TASK_CREDITS } from "@/lib/scoring";
-import { STREAK_MAX_BONUS, STREAK_MAX_DAY, streakBonus } from "@/lib/streaks";
 
-// Every number on this page is read from the rules that do the real scoring and
-// billing, so the page can't drift from them.
+// Every number on this page is read from the rules that do the real billing,
+// so the page can't drift from them.
 
-// For the few pictures the shared icon family lacks, drawn to the same rules.
-function Glyph({ children }: { children: React.ReactNode }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="size-4 shrink-0 fill-none stroke-current"
-      strokeWidth={1.6}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      {children}
-    </svg>
-  );
-}
+const marginPercent = Math.round(MARGIN * 100);
 
-const proofPoints = ["No gas to sign in", "OpenAI-compatible", "Revoke keys anytime"];
+const proofPoints = ["No subscription", "OpenAI-compatible", "Revoke keys anytime"];
 
 // Places that speak the OpenAI API, mixed with what a Kredit key adds on top.
 const compatibility = [
   "Cursor",
   "Balance in every response header",
   "Postman",
-  `Streaks · up to ${STREAK_MAX_BONUS} a day`,
+  "Pay by card or UPI",
   "OpenAI Python SDK",
-  `Referrals · ${REFERRAL_PERCENT}% of their claims`,
+  `${marginPercent}% fee on the provider's price`,
   "OpenAI Node SDK",
   "curl",
-];
-
-const topMilestone = Math.max(...MILESTONES.map((milestone) => milestone.credits));
-
-const earnings = [
-  {
-    icon: (
-      <Glyph>
-        <path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9.5 9 5 9-5M3 17l9 5 9-5" />
-      </Glyph>
-    ),
-    name: "Deploy a contract",
-    text: "Every contract you deploy on Robinhood Chain is a task.",
-    value: formatCredits(TASK_CREDITS.deploy),
-    unit: "credits each",
-  },
-  {
-    icon: <ActivityIcon />,
-    name: "Contract interaction",
-    text: "Any successful call to a contract counts.",
-    value: formatCredits(TASK_CREDITS.contract_call),
-    unit: "credits each",
-  },
-  {
-    icon: <ArrowUpRightIcon />,
-    name: "Transfer",
-    text: "Plain transfers count too, at a smaller rate.",
-    value: formatCredits(TASK_CREDITS.transfer),
-    unit: "credits each",
-  },
-  {
-    icon: (
-      <Glyph>
-        <path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-1.8.8-3 1.8-4 .3 1.6 1.2 2.4 2.2 2.6C10.5 9 11 6 12 3Z" />
-      </Glyph>
-    ),
-    name: "Streaks",
-    text: `Come back day after day. Each day of a streak pays a growing bonus, from ${streakBonus(2)} on day two to ${STREAK_MAX_BONUS} from day ${STREAK_MAX_DAY} on.`,
-    value: formatCredits(STREAK_MAX_BONUS),
-    unit: "credits a day at most",
-  },
-  {
-    icon: <UsersIcon />,
-    name: "Referrals",
-    text: "Invite a wallet. Every time it claims credits, you get a share on top. It loses nothing.",
-    value: `${REFERRAL_PERCENT}%`,
-    unit: "of what they claim",
-  },
-  {
-    icon: (
-      <Glyph>
-        <path d="M5 21V4m0 1h12l-2.5 4 2.5 4H5" />
-      </Glyph>
-    ),
-    name: "Milestones",
-    text: `One-time bonuses at ${MILESTONES.map((milestone) => milestone.txs).join(", ")} transactions.`,
-    value: formatCredits(topMilestone),
-    unit: "credits at most",
-  },
 ];
 
 // Live vignettes. The grid is six columns wide; spans keep the rows uneven on purpose.
@@ -130,9 +50,9 @@ const bento = [
   },
   {
     span: "lg:col-span-2",
-    live: <TaskFeed />,
-    title: "Every task counted",
-    text: "Deployments, swaps, interactions and milestones, scored by public rules.",
+    live: <UsageFeed />,
+    title: "Every call itemised",
+    text: "Model, tokens in and out, and the credits it cost. Nothing is averaged or hidden.",
   },
   {
     span: "lg:col-span-4",
@@ -151,7 +71,7 @@ const bento = [
 const dashboardPoints = [
   {
     title: "Focused pages",
-    text: "Earning, keys, activity and credits each get a page of their own.",
+    text: "Credits, keys, activity and settings each get a page of their own.",
   },
   {
     title: "Jump anywhere",
@@ -169,10 +89,10 @@ const dashboardPoints = [
 ];
 
 const stats = [
-  { value: STREAK_MAX_BONUS, suffix: "", label: "credits a day for keeping a streak alive" },
-  { value: REFERRAL_PERCENT, suffix: "%", label: "of every claim by a wallet you invited" },
-  { value: TASK_CREDITS.deploy, suffix: "", label: "credits for every contract you deploy" },
   { value: CREDITS_PER_USD, suffix: "", label: "credits buy $1 of AI usage" },
+  { value: marginPercent, suffix: "%", label: "fee on top of the provider's price" },
+  { value: 500, suffix: "+", label: "models behind one key" },
+  { value: MAX_ACTIVE_KEYS, suffix: "", label: "active keys per account, one per tool" },
 ];
 
 // Side by side with OpenRouter, which is the closest thing people already know.
@@ -181,54 +101,50 @@ const openRouterComparison = {
     "One key reaches every maker: OpenAI, Anthropic, Google, Meta and the rest.",
     "OpenAI-compatible API. Change the base URL, keep your code.",
     "Model ids in the same maker/model shape, like openai/gpt-4o-mini.",
-    `Pay per call at the provider's price, plus a ${Math.round(MARGIN * 100)}% fee.`,
+    `Pay per call at the provider's price, plus a ${marginPercent}% fee.`,
   ],
   different: [
-    "No card and no account form. You sign in with a wallet signature.",
-    "Credits come from what your wallet has done on Robinhood Chain, or from a top-up in USDG or ETH.",
-    "Every claim is a receipt on-chain that anyone can verify.",
+    "Sign in with an email code or Google. No wallet, no seed phrase, no browser extension.",
+    "Pay in rupees by UPI or card, or in dollars by card. Credits land the moment the payment is confirmed.",
     "The cost of every call comes back in the response headers.",
+    "A built-in echo model, so you can test a key before spending on a real one.",
   ],
 };
 
-const topUpPoints = [
-  "You pay from your own wallet, straight to the treasury, and the contract writes the receipt.",
-  "The server credits only what the transaction receipt proves.",
-  "Credits land the moment the chain confirms the payment.",
+const buyPoints = [
+  "Card, UPI and net banking through a regulated payment provider. Kredit never sees your card.",
+  "Credits are written to your balance by the provider's confirmation, never by a page you could reload.",
+  "Every purchase is listed on your dashboard with what it cost and what it bought.",
 ];
 
 const faqs = [
   {
     question: "What is a credit worth?",
-    answer: `${formatCredits(CREDITS_PER_USD)} credits pay for $1 of AI usage. Each call is charged exactly what the model's provider charged, with a ${Math.round(MARGIN * 100)}% fee on top and a ${MIN_CREDITS_PER_REQUEST}-credit minimum, and every response tells you what it cost and what is left.`,
+    answer: `${formatCredits(CREDITS_PER_USD)} credits pay for $1 of AI usage. Each call is charged exactly what the model's provider charged, with a ${marginPercent}% fee on top and a ${MIN_CREDITS_PER_REQUEST}-credit minimum, and every response tells you what it cost and what is left.`,
   },
   {
-    question: "Does signing in cost anything?",
-    answer: "No. With a wallet you sign one free message to prove it is yours; with email or Google you confirm a code and get an embedded wallet. There is no transaction and no gas.",
+    question: "How do I sign in?",
+    answer: "With an email code or your Google account. There is no password to remember and nothing to install.",
   },
   {
-    question: "How are my credits calculated?",
-    answer: `A deployed contract earns ${TASK_CREDITS.deploy} credits, a contract interaction ${TASK_CREDITS.contract_call} and a transfer ${TASK_CREDITS.transfer}. One-time bonuses land at ${MILESTONES.map((milestone) => milestone.txs).join(", ")} transactions. Failed transactions earn nothing, every transaction pays once, and task rewards are capped at ${formatCredits(DAILY_TASK_CAP)} credits per wallet per day. Consecutive active days add a streak bonus on top, and wallets you invite send you ${REFERRAL_PERCENT}% of whatever they claim.`,
+    question: "How do I pay?",
+    answer: "By card, UPI or net banking at a fixed price per thousand credits. The payment goes through a regulated provider; Kredit only hears that it succeeded and writes the credits to your balance.",
   },
   {
-    question: "Where can I spend them?",
+    question: "Where can I spend credits?",
     answer: "Anywhere that speaks the OpenAI API: Postman, Cursor, your own code. Point the base URL at Kredit and paste your key. The built-in kredit/echo model repeats your message and is billed by length like a real model, so you can test a key and see how charges behave.",
   },
   {
-    question: "Can I buy credits instead of earning them?",
-    answer: "Earning is the main way and costs nothing. Once top-ups are open you can also buy credits at a fixed price, 1,000 credits for $0.80, paid in USDG or ETH from your own wallet, and they land when the chain confirms the payment.",
-  },
-  {
     question: "How is Kredit different from OpenRouter?",
-    answer: `Same idea, different wallet. Like OpenRouter, one Kredit key reaches every major model through an OpenAI-compatible API, and each call is billed at the provider's price plus a ${Math.round(MARGIN * 100)}% fee. The difference is how you pay: there is no card and no account. Credits come from what your wallet has done on Robinhood Chain, or from a top-up in USDG or ETH, and every claim is a receipt on-chain. If your code already talks to OpenRouter, change the base URL and the key and it works.`,
+    answer: `Same idea, simpler account. Like OpenRouter, one Kredit key reaches every major model through an OpenAI-compatible API, and each call is billed at the provider's price plus a ${marginPercent}% fee. Kredit adds local payment methods such as UPI, a balance that comes back in every response header, and a playground that spends the same credits. If your code already talks to OpenRouter, change the base URL and the key and it works.`,
   },
   {
     question: "What if a key leaks?",
     answer: `Revoke it from your dashboard and it stops working at once. You can keep up to ${MAX_ACTIVE_KEYS} active keys, one per tool, so revoking one never breaks the others.`,
   },
   {
-    question: "Is Kredit part of Robinhood?",
-    answer: "No. Kredit is an independent project built on Robinhood Chain and is not affiliated with Robinhood.",
+    question: "Do credits expire?",
+    answer: "No. Credits stay in your balance until you spend them.",
   },
 ];
 
@@ -263,16 +179,16 @@ export default function Home() {
                 </Fragment>
               ))}
               <span style={beat(headline.length + 1)} className="inline-block animate-rise">
-                <span className="text-shine">settled on-chain</span>
+                <span className="text-shine">paid as you go</span>
               </span>
             </h1>
             <p style={beat(6)} className="mt-6 max-w-[52ch] animate-rise text-lg leading-relaxed text-mist">
-              Kredit is an on-chain OpenRouter. One key reaches OpenAI, Anthropic, Google and the rest
-              through one OpenAI-compatible API, and your wallet&apos;s activity on Robinhood Chain earns
-              the credits that pay for it.
+              Kredit is a simpler OpenRouter. One key reaches OpenAI, Anthropic, Google and the rest
+              through one OpenAI-compatible API. Buy credits by card or UPI, spend them by the token,
+              and read the bill in the response headers.
             </p>
             <div style={beat(8)} className="mt-9 flex animate-rise flex-wrap items-center gap-x-6 gap-y-4">
-              <WalletButton label="Sign in and see your record" />
+              <SignInButton label="Sign in and get a key" />
               <a href="#how" className={quietLink}>
                 How it works
                 <ArrowRightIcon className={quietArrow} />
@@ -316,80 +232,42 @@ export default function Home() {
       </section>
 
       <section id="how" className="mx-auto max-w-6xl px-4 py-24 md:py-32">
-        <SectionHeading eyebrow="How it works" title="From wallet activity to any model">
-          Three steps and one free signature. The work you already did on-chain does the rest.
+        <SectionHeading eyebrow="How it works" title="From a sign-in to any model">
+          Three steps and a few minutes. No wallet, no subscription, no sales call.
         </SectionHeading>
         <div className="mt-16">
           <LoopBeam />
         </div>
       </section>
 
-      <section id="earn" className="border-y border-line bg-surface">
-        <div className="mx-auto grid max-w-6xl items-center gap-x-16 gap-y-14 px-4 py-24 md:py-32 lg:grid-cols-[0.85fr_1.15fr]">
-          {/* Reads second on a phone, where the explanation should come first. */}
-          <Reveal variant="mark" className="meter order-last flex justify-center lg:order-first lg:justify-start">
-            <Tilt className="w-full max-w-sm">
-              <CreditMeter />
-            </Tilt>
-          </Reveal>
-
-          <div>
-            <SectionHeading eyebrow="Earn" title="What your record earns">
-              Credits come from what you actually do on-chain, never from luck.
-              The rules are public and the same for every wallet.
-            </SectionHeading>
-            <ul className="mt-10 border-t border-line">
-              {earnings.map((way, index) => (
-                <Reveal as="li" key={way.name} delay={index * 60} className="entity group items-start gap-4 py-4">
-                  <span className="entity-icon mt-0.5 transition-colors duration-300 group-hover:text-accent">{way.icon}</span>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-[0.9375rem] font-medium text-fog">{way.name}</h3>
-                    <p className="mt-0.5 text-sm leading-relaxed text-mist">{way.text}</p>
-                  </div>
-                  <p className="shrink-0 text-right">
-                    <span className="block font-mono text-base font-semibold tabular-nums text-fog">{way.value}</span>
-                    <span className="block text-xs text-mist">{way.unit}</span>
-                  </p>
-                </Reveal>
-              ))}
-            </ul>
-            <Reveal delay={120}>
-              <p className="mt-6 max-w-[60ch] text-sm leading-relaxed text-mist">
-                Task rewards are capped at {formatCredits(DAILY_TASK_CAP)} credits per wallet per day.
-                Failed transactions earn nothing, and every transaction pays once.
-              </p>
-            </Reveal>
+      <section id="live" className="border-y border-line bg-surface">
+        <div className="mx-auto max-w-6xl px-4 py-24 md:py-32">
+          <SectionHeading eyebrow="Watch it work" title="From a request to a model's answer">
+            Your key spends the credits, and every response tells you what is left. The numbers below are examples.
+          </SectionHeading>
+          {/* minmax(0, 1fr): without it the one phone column grows as wide as the logo marquee inside it. */}
+          <div className="mt-14 grid grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-10 lg:grid-cols-6">
+            {bento.map((tile, index) => (
+              <Reveal key={tile.title} delay={index * 90} className={tile.span}>
+                <div className={`card flex flex-col justify-center overflow-hidden p-7 ${tile.span === "lg:col-span-6" ? "py-9" : "min-h-64"}`}>
+                  {tile.live}
+                </div>
+                <h3 className="mt-5 font-semibold">{tile.title}</h3>
+                <p className="mt-1 max-w-[52ch] text-sm leading-relaxed text-mist">{tile.text}</p>
+              </Reveal>
+            ))}
           </div>
+          <Reveal className="mt-10">
+            <Link href="/catalog" className={quietLink}>
+              See every model, with the price of a turn
+              <ArrowRightIcon className={quietArrow} />
+            </Link>
+          </Reveal>
         </div>
       </section>
 
-      <section id="live" className="mx-auto max-w-6xl px-4 py-24 md:py-32">
-        <SectionHeading eyebrow="Watch it work" title="From a transaction to a model's answer">
-          Your record earns the credits, your key spends them, and every response
-          tells you what is left. The numbers below are examples.
-        </SectionHeading>
-        {/* minmax(0, 1fr): without it the one phone column grows as wide as the logo marquee inside it. */}
-        <div className="mt-14 grid grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-10 lg:grid-cols-6">
-          {bento.map((tile, index) => (
-            <Reveal key={tile.title} delay={index * 90} className={tile.span}>
-              <div className={`card flex flex-col justify-center overflow-hidden p-7 ${tile.span === "lg:col-span-6" ? "py-9" : "min-h-64"}`}>
-                {tile.live}
-              </div>
-              <h3 className="mt-5 font-semibold">{tile.title}</h3>
-              <p className="mt-1 max-w-[52ch] text-sm leading-relaxed text-mist">{tile.text}</p>
-            </Reveal>
-          ))}
-        </div>
-        <Reveal className="mt-10">
-          <Link href="/catalog" className={quietLink}>
-            See every model, with the price of a turn
-            <ArrowRightIcon className={quietArrow} />
-          </Link>
-        </Reveal>
-      </section>
-
-      <section className="border-y border-line bg-surface">
-        <div className="mx-auto grid max-w-6xl items-center gap-x-16 gap-y-14 px-4 py-24 md:py-32 lg:grid-cols-[0.85fr_1.3fr]">
+      <section className="mx-auto max-w-6xl px-4 py-24 md:py-32">
+        <div className="grid items-center gap-x-16 gap-y-14 lg:grid-cols-[0.85fr_1.3fr]">
           <div>
             <SectionHeading eyebrow="The dashboard" title="A dashboard that stays out of your way">
               Once you sign in, four numbers tell you where you stand. Everything else is one step away.
@@ -410,16 +288,6 @@ export default function Home() {
             <DashboardPreview />
           </Reveal>
         </div>
-      </section>
-
-      <section id="estimate" className="mx-auto max-w-6xl px-4 py-24 md:py-32">
-        <SectionHeading eyebrow="Estimate" title="See what your record could earn">
-          Drag the sliders. The receipt updates with the real scoring rules,
-          daily cap and milestones included.
-        </SectionHeading>
-        <Reveal delay={120} className="mt-14">
-          <Estimator />
-        </Reveal>
       </section>
 
       <section id="api" className="border-y border-line bg-surface">
@@ -468,9 +336,9 @@ export default function Home() {
       </section>
 
       <section id="openrouter" className="mx-auto max-w-6xl px-4 py-24 md:py-32">
-        <SectionHeading eyebrow="OpenRouter, on-chain" title="What you expect from OpenRouter, paid a different way">
+        <SectionHeading eyebrow="OpenRouter, simplified" title="What you expect from OpenRouter, paid your way">
           If you have used OpenRouter, you already know how Kredit works. One key, every model,
-          one API. The difference is where the credits come from.
+          one API. The difference is how you pay and what you see.
         </SectionHeading>
         <div className="mt-14 grid gap-6 lg:grid-cols-2">
           {[
@@ -523,15 +391,14 @@ export default function Home() {
       <section id="buy" className="mx-auto max-w-6xl px-4 py-24 md:py-32">
         <div className="grid items-center gap-x-16 gap-y-12 lg:grid-cols-[1.2fr_1fr]">
           <div>
-            <SectionHeading eyebrow="Need more?" title="Top up with USDG or ETH">
-              Earning comes first, and it is free. When a big job needs more than your
-              record has earned, buy credits at a fixed price, 1,000 for $0.80, paid in
-              USDG or ETH from your own wallet. The credits land as soon as the chain
-              confirms. Nothing is locked or held.
+            <SectionHeading eyebrow="Paying" title="Buy credits by card or UPI">
+              Top up when you need to, at a fixed price per thousand credits. The payment goes
+              through a regulated provider and the credits land the moment it is confirmed.
+              Nothing recurs unless you ask it to.
             </SectionHeading>
             <Reveal delay={260}>
               <ul className="mt-8 space-y-3 text-sm text-mist">
-                {topUpPoints.map((point) => (
+                {buyPoints.map((point) => (
                   <li key={point} className="flex items-start gap-2.5">
                     <CheckIcon className="mt-0.5 size-4 text-accent" />
                     {point}
@@ -541,7 +408,31 @@ export default function Home() {
             </Reveal>
           </div>
           <Reveal delay={150}>
-            <TopUpTeaser />
+            <div className="card relative overflow-hidden p-7">
+              <div className="flex items-center justify-between">
+                <span className="grid size-11 place-items-center rounded-xl border border-line bg-raised text-accent">
+                  <SparkIcon className="size-5" />
+                </span>
+                <span className="chip">
+                  <span className="size-1.5 rounded-full bg-mist breathe" />
+                  Opening soon
+                </span>
+              </div>
+              <div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4 font-mono">
+                <div>
+                  <p className="text-2xl font-semibold text-fog sm:text-3xl">$1</p>
+                  <p className="mt-1 text-xs text-mist">card · UPI · net banking</p>
+                </div>
+                <ArrowRightIcon className="size-5 text-accent" />
+                <div className="text-right">
+                  <p className="text-2xl font-semibold text-accent sm:text-3xl">{formatCredits(CREDITS_PER_USD)}</p>
+                  <p className="mt-1 text-xs text-mist">credits · $1 of AI usage</p>
+                </div>
+              </div>
+              <Link href="/dashboard/credits" className="btn-ghost mt-8 w-full justify-center px-5 py-2.5 text-sm">
+                Open your dashboard
+              </Link>
+            </div>
           </Reveal>
         </div>
       </section>
@@ -550,7 +441,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl gap-x-16 gap-y-12 px-4 py-24 md:py-32 lg:grid-cols-[1fr_1.6fr]">
           <div className="self-start lg:sticky lg:top-24">
             <SectionHeading eyebrow="FAQ" title="Questions, answered">
-              The short version of how credits are earned, priced and spent.
+              The short version of how credits are bought, priced and spent.
             </SectionHeading>
             <Reveal delay={240} className="mt-6">
               <Link href="/docs" className={quietLink}>
@@ -588,14 +479,14 @@ export default function Home() {
           <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="max-w-[18ch] text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-5xl">
-                Your record is already worth <span className="text-shine">something.</span>
+                Every model, <span className="text-shine">one key.</span>
               </h2>
               <p className="mt-5 max-w-[52ch] text-lg leading-relaxed text-mist">
-                Sign in with your wallet and see the receipt.
+                Sign in, create a key, and make your first call in five minutes.
               </p>
             </div>
             <div className="shrink-0">
-              <WalletButton label="Sign in and see your record" />
+              <SignInButton label="Sign in and get a key" />
             </div>
           </div>
         </Reveal>

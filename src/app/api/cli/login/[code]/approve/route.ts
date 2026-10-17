@@ -14,13 +14,13 @@ export async function GET(_request: Request, context: Context) {
   return Response.json({ code: row.code, host: row.host, approved: Boolean(row.approvedAt), expired });
 }
 
-// The signed-in wallet approves the code and a key is made for the terminal.
+// The signed-in person approves the code and a key is made for the terminal.
 export async function POST(_request: Request, context: Context) {
   const session = await getSession();
   if (!session) return Response.json({ error: "Sign in first" }, { status: 401 });
   const { code } = await context.params;
   try {
-    return Response.json(await approveLogin(code, session.address));
+    return Response.json(await approveLogin(code, session.userId));
   } catch (error) {
     if (error instanceof LoginError) return Response.json({ error: error.message }, { status: error.status });
     throw error;

@@ -6,7 +6,7 @@ export const metadata = { title: "Activity — Kredit" };
 export default function Activity() {
   return (
     <>
-      <PageHeader title="Activity" lede="The latest credits in and out of this wallet. Spending is private; only claims are written on-chain." />
+      <PageHeader title="Activity" lede="Every credit that came in or went out of your account, newest first." />
       <div className="animate-rise">
         <ActivityTable />
       </div>

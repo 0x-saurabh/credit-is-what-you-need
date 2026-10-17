@@ -5,6 +5,6 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
   const session = await getSession();
   if (!session) return Response.json({ error: "Sign in first" }, { status: 401 });
   const { id } = await context.params;
-  if (!(await deleteCreation(session.address, id))) return Response.json({ error: "Not found" }, { status: 404 });
+  if (!(await deleteCreation(session.userId, id))) return Response.json({ error: "Not found" }, { status: 404 });
   return Response.json({ ok: true });
 }

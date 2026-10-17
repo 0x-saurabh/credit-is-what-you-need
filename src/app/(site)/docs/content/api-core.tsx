@@ -15,7 +15,7 @@ export function Authentication() {
   return (
     <Doc
       slug="api/authentication"
-      lede="Every request to /v1 carries an API key that belongs to a wallet. The key spends that wallet's credits and nothing else."
+      lede="Every request to /v1 carries an API key that belongs to an account. The key spends that account's credits and nothing else."
     >
       <H2>Keys</H2>
       <p>
@@ -26,11 +26,11 @@ export function Authentication() {
       </p>
       <ul>
         <li>
-          A wallet can hold up to <strong>{MAX_ACTIVE_KEYS} active keys</strong>. One per tool is a good habit, so a
+          An account can hold up to <strong>{MAX_ACTIVE_KEYS} active keys</strong>. One per tool is a good habit, so a
           leak in one place never takes the others down.
         </li>
         <li>Revoking a key takes effect on the very next request.</li>
-        <li>A key sees only what it needs to spend: its wallet&apos;s balance, holds and usage. Never the wallet&apos;s other keys or where its credits came from.</li>
+        <li>A key sees only what it needs to spend: its account&apos;s balance, holds and usage. Never the account&apos;s other keys or its purchases.</li>
       </ul>
 
       <H2>Sending the key</H2>
@@ -43,7 +43,7 @@ export function Authentication() {
 
       <H2>Managing keys from your own code</H2>
       <p>
-        Keys are managed with the wallet session, not with another key. These two routes are what the dashboard
+        Keys are managed with the browser session, not with another key. These two routes are what the dashboard
         calls; they need the signed-in session cookie.
       </p>
       <Endpoint method="POST" path="/api/keys" note="session cookie" />
@@ -59,7 +59,7 @@ export function Authentication() {
       </p>
       <Endpoint method="DELETE" path="/api/keys/{id}" note="session cookie" />
       <p>
-        Answers <code>{`{ "ok": true }`}</code>, or <code>404</code> when the id is unknown, belongs to another wallet or
+        Answers <code>{`{ "ok": true }`}</code>, or <code>404</code> when the id is unknown, belongs to another account or
         is already revoked. The list of active keys comes back with <code>GET /api/account</code>.
       </p>
 
@@ -76,7 +76,7 @@ export function Authentication() {
       />
       <Callout kind="warn" title="Keep keys on a server">
         <p>
-          A key can spend every credit in its wallet. Never ship one in code that runs in someone else&apos;s browser
+          A key can spend every credit in its account. Never ship one in code that runs in someone else&apos;s browser
           or in a public repository. If one leaks, revoke it on the dashboard; the others keep working.
         </p>
       </Callout>
@@ -299,7 +299,7 @@ export function Messages() {
   "type": "error",
   "error": {
     "type": "billing_error",
-    "message": "You are out of credits. Earn more on your Kredit dashboard.",
+    "message": "You are out of credits. Buy more on your Kredit dashboard.",
     "code": "insufficient_credits"
   }
 }`}

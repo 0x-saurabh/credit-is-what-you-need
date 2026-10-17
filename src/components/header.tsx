@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { OrbMark } from "@/components/brand/orb-mark";
 import { CloseIcon, MenuIcon, PlayIcon } from "@/components/icons";
-import { WalletButton } from "@/components/wallet-button";
+import { SignInButton } from "@/components/sign-in-button";
 
 const links = [
   ["How it works", "/#how"],
@@ -80,7 +80,7 @@ export function Header() {
             <PlayIcon className="size-3.5 text-accent" />
             Playground
           </Link>
-          <WalletButton signedIn="account" />
+          <SignInButton signedIn="account" />
           <button
             type="button"
             aria-label={menuOpen ? "Close menu" : "Open menu"}

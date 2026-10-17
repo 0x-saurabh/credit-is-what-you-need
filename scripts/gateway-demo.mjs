@@ -1,5 +1,5 @@
 // Live demo of the three kinds of call, through Kredit's own API and billed
-// from a wallet's credits: streaming text, an image saved to a file, and a
+// from an account's credits: streaming text, an image saved to a file, and a
 // video saved to a file. It spends real money on the gateway (well under $1).
 //
 //   npx next start -p 3458         (with UPSTREAM_API_KEY set to a Vercel AI Gateway key)
@@ -18,9 +18,9 @@ const IMAGE_MODEL = process.env.DEMO_IMAGE_MODEL ?? "openai/gpt-image-2";
 const VIDEO_MODEL = process.env.DEMO_VIDEO_MODEL ?? "google/veo-3.1-fast-generate-001";
 fs.mkdirSync(out, { recursive: true });
 
-const WALLET = `0x${Date.now().toString(16).padStart(40, "a")}`;
-const cookie = await sessionCookie(WALLET);
-await query("INSERT INTO ledger (address, amount, kind, memo) VALUES (?, 5000, 'claim', 'gateway-demo')", [WALLET.toLowerCase()]);
+const USER = `did:privy:test-a${Date.now().toString(36)}`;
+const cookie = await sessionCookie(USER);
+await query("INSERT INTO ledger (user_id, amount, kind, memo) VALUES (?, 5000, 'grant', 'gateway-demo')", [USER]);
 const { key } = await (await fetch(`${base}/api/keys`, { method: "POST", headers: { cookie, "content-type": "application/json" }, body: JSON.stringify({ name: "demo" }) })).json();
 const auth = { authorization: `Bearer ${key}`, "content-type": "application/json" };
 const balance = async () => (await (await fetch(`${base}/v1/account`, { headers: auth })).json()).balance;
@@ -29,14 +29,14 @@ const fail = async (what, response) => {
   throw new Error(`${what} failed: HTTP ${response.status} ${body.slice(0, 400)}`);
 };
 
-console.log(`Wallet ${WALLET} starts with ${await balance()} credits.\n`);
+console.log(`Account ${USER} starts with ${await balance()} credits.\n`);
 
 // --- 1. streaming text
 console.log(`== Text: ${TEXT_MODEL} (streaming)`);
 const chat = await fetch(`${base}/v1/chat/completions`, {
   method: "POST",
   headers: auth,
-  body: JSON.stringify({ model: TEXT_MODEL, stream: true, max_tokens: 120, messages: [{ role: "user", content: "In two sentences, what is Robinhood Chain?" }] }),
+  body: JSON.stringify({ model: TEXT_MODEL, stream: true, max_tokens: 120, messages: [{ role: "user", content: "In two sentences, what is an API gateway?" }] }),
 });
 if (!chat.ok) await fail("text", chat);
 const reader = chat.body.getReader();
@@ -89,4 +89,4 @@ console.log(`-> saved ${videoPath} (${fs.statSync(videoPath).size} bytes) in ${M
 
 const usage = await (await fetch(`${base}/v1/usage`, { headers: auth })).json();
 console.log("Spend by model:", usage.by_model.map((row) => `${row.model}: ${row.credits}`).join(", "));
-console.log(`Wallet ends with ${await balance()} credits.`);
+console.log(`Account ends with ${await balance()} credits.`);

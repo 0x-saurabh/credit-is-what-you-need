@@ -8,61 +8,30 @@ import { Pool } from "pg";
 export const NOW = `to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`;
 
 const SCHEMA = `
-  -- Every credit movement. A wallet's balance is the sum of its rows.
+  -- Who signs in. The id is Privy's user id (did:privy:…); email and name are
+  -- what Privy knows about the person, refreshed on every sign-in.
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT,
+    name TEXT,
+    created_at TEXT NOT NULL DEFAULT ${NOW},
+    last_seen_at TEXT NOT NULL DEFAULT ${NOW}
+  );
+
+  -- Every credit movement. A user's balance is the sum of their rows.
   CREATE TABLE IF NOT EXISTS ledger (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    address TEXT NOT NULL,
+    user_id TEXT NOT NULL,
     amount INTEGER NOT NULL,
-    kind TEXT NOT NULL,          -- claim | milestone | streak | referral | topup | spend
+    kind TEXT NOT NULL,          -- purchase | grant | spend (older rows: claim, milestone, streak, referral, topup)
     memo TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT ${NOW},
-    network TEXT,                -- which network a credit came from
-    tx_hash TEXT                 -- the on-chain receipt that carried it
-  );
-  CREATE INDEX IF NOT EXISTS ledger_address ON ledger (address, id);
-
-  -- A transaction pays out once, ever, no matter who asks or how often.
-  CREATE TABLE IF NOT EXISTS claimed_txs (
-    network TEXT NOT NULL,
-    hash TEXT NOT NULL,
-    address TEXT NOT NULL,
-    day TEXT NOT NULL,
-    earned INTEGER NOT NULL,
-    granted INTEGER NOT NULL,
-    PRIMARY KEY (network, hash)
-  );
-  CREATE INDEX IF NOT EXISTS claimed_txs_day ON claimed_txs (address, network, day);
-
-  -- A day's streak bonus is paid once.
-  CREATE TABLE IF NOT EXISTS claimed_streak_days (
-    address TEXT NOT NULL,
-    network TEXT NOT NULL,
-    day TEXT NOT NULL,
-    PRIMARY KEY (address, network, day)
-  );
-
-  -- Who invited a wallet, named once before its first claim. "claimed" is what
-  -- the wallet has claimed since, "paid" the inviter's share of it.
-  CREATE TABLE IF NOT EXISTS referrals (
-    address TEXT PRIMARY KEY,
-    referrer TEXT NOT NULL,
-    claimed INTEGER NOT NULL DEFAULT 0,
-    paid INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT ${NOW}
-  );
-  CREATE INDEX IF NOT EXISTS referrals_referrer ON referrals (referrer);
-
-  CREATE TABLE IF NOT EXISTS claimed_milestones (
-    address TEXT NOT NULL,
-    network TEXT NOT NULL,
-    txs INTEGER NOT NULL,
-    PRIMARY KEY (address, network, txs)
   );
 
   -- Only the hash of a key is stored; the key itself is shown once.
   CREATE TABLE IF NOT EXISTS api_keys (
     id TEXT PRIMARY KEY,
-    address TEXT NOT NULL,
+    user_id TEXT NOT NULL,
     key_hash TEXT NOT NULL UNIQUE,
     prefix TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -70,75 +39,40 @@ const SCHEMA = `
     last_used_at TEXT,
     revoked_at TEXT
   );
-  CREATE INDEX IF NOT EXISTS api_keys_address ON api_keys (address);
 
-  -- Display names from the retired distribution board. Kept so old rows stay; nothing writes here now.
-  CREATE TABLE IF NOT EXISTS profiles (
-    address TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    updated_at TEXT NOT NULL DEFAULT ${NOW}
-  );
-
-  -- A token payment buys credits once. amount is in the token's base units.
-  CREATE TABLE IF NOT EXISTS topups (
-    network TEXT NOT NULL,
-    hash TEXT NOT NULL,
-    address TEXT NOT NULL,
-    token TEXT NOT NULL,
-    symbol TEXT NOT NULL,
-    decimals INTEGER NOT NULL,
-    amount TEXT NOT NULL,
+  -- A payment buys credits exactly once: the id is the payment provider's own
+  -- id for it, so a webhook delivered twice cannot pay twice.
+  CREATE TABLE IF NOT EXISTS purchases (
+    id TEXT PRIMARY KEY,           -- "<provider>:<payment id>"
+    user_id TEXT NOT NULL,
+    provider TEXT NOT NULL,        -- razorpay | dodo | manual
+    amount INTEGER NOT NULL,       -- in the currency's smallest unit (paise, cents)
+    currency TEXT NOT NULL,        -- INR, USD, …
     credits INTEGER NOT NULL,
-    created_at TEXT NOT NULL DEFAULT ${NOW},
-    PRIMARY KEY (network, hash)
+    created_at TEXT NOT NULL DEFAULT ${NOW}
   );
-  CREATE INDEX IF NOT EXISTS topups_address ON topups (address);
 
   -- A signed-in browser. The cookie only names a row here, so signing out
   -- (here or everywhere) ends the session before the cookie expires.
   CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
-    address TEXT NOT NULL,
+    user_id TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT ${NOW},
     expires_at INTEGER NOT NULL,   -- unix seconds
     revoked_at TEXT
   );
-  CREATE INDEX IF NOT EXISTS sessions_address ON sessions (address);
 
-  -- Sign-in nonces already used, kept until they would have expired anyway.
-  CREATE TABLE IF NOT EXISTS spent_nonces (
-    nonce TEXT PRIMARY KEY,
-    expires_at INTEGER NOT NULL    -- unix seconds
-  );
-
-  -- A receipt the server signed for the KreditReceipts contract. Its plan is
-  -- written into the ledger once the chain has it (settled_at, tx_hash).
-  CREATE TABLE IF NOT EXISTS pending_claims (
-    receipt_id TEXT PRIMARY KEY,   -- the EIP-712 struct hash, as the contract reports it
-    network TEXT NOT NULL,
-    address TEXT NOT NULL,
-    nonce INTEGER NOT NULL,
-    credits INTEGER NOT NULL,
-    plan TEXT NOT NULL,            -- JSON ClaimPlan
-    deadline INTEGER NOT NULL,     -- unix seconds
-    created_at TEXT NOT NULL DEFAULT ${NOW},
-    tx_hash TEXT,
-    settled_at TEXT
-  );
-  CREATE INDEX IF NOT EXISTS pending_claims_address ON pending_claims (address, network);
-
-  -- The workspace: a wallet's conversations, their messages, and its library
+  -- The workspace: a user's conversations, their messages, and their library
   -- of pictures and clips. Deleting a conversation deletes its messages.
   CREATE TABLE IF NOT EXISTS conversations (
     id TEXT PRIMARY KEY,
-    address TEXT NOT NULL,
+    user_id TEXT NOT NULL,
     title TEXT NOT NULL,
     model TEXT NOT NULL,
     system TEXT,
     created_at TEXT NOT NULL DEFAULT ${NOW},
     updated_at TEXT NOT NULL DEFAULT ${NOW}
   );
-  CREATE INDEX IF NOT EXISTS conversations_address ON conversations (address, updated_at);
 
   CREATE TABLE IF NOT EXISTS messages (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -155,7 +89,7 @@ const SCHEMA = `
 
   CREATE TABLE IF NOT EXISTS creations (
     id TEXT PRIMARY KEY,
-    address TEXT NOT NULL,
+    user_id TEXT NOT NULL,
     kind TEXT NOT NULL,            -- image | video
     prompt TEXT NOT NULL,
     model TEXT NOT NULL,
@@ -163,15 +97,14 @@ const SCHEMA = `
     files TEXT NOT NULL,           -- JSON [{ base64, mediaType }]
     created_at TEXT NOT NULL DEFAULT ${NOW}
   );
-  CREATE INDEX IF NOT EXISTS creations_address ON creations (address, created_at);
 
   -- A CLI login in progress: the terminal shows a code, the browser approves
-  -- it with the wallet, and the terminal collects the key once. The key sits
-  -- here only between approval and pickup, and rows die after ten minutes.
+  -- it, and the terminal collects the key once. The key sits here only between
+  -- approval and pickup, and rows die after ten minutes.
   CREATE TABLE IF NOT EXISTS cli_logins (
     code TEXT PRIMARY KEY,
     host TEXT,
-    address TEXT,
+    user_id TEXT,
     key_id TEXT,
     key_value TEXT,
     created_at TEXT NOT NULL DEFAULT ${NOW},
@@ -180,34 +113,46 @@ const SCHEMA = `
     claimed_at TEXT
   );
 
-  -- A large claim from a risky record waits here before it can be paid.
-  CREATE TABLE IF NOT EXISTS claim_holds (
-    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    address TEXT NOT NULL,
-    network TEXT NOT NULL,
-    credits INTEGER NOT NULL,
-    reason TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT ${NOW},
-    release_at TEXT NOT NULL
-  );
-  CREATE INDEX IF NOT EXISTS claim_holds_address ON claim_holds (address, network, id);
-
   CREATE TABLE IF NOT EXISTS usage (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     key_id TEXT NOT NULL,
-    address TEXT NOT NULL,
+    user_id TEXT NOT NULL,
     model TEXT NOT NULL,
     input_tokens INTEGER NOT NULL,
     output_tokens INTEGER NOT NULL,
     credits INTEGER NOT NULL,
     created_at TEXT NOT NULL DEFAULT ${NOW}
   );
-  CREATE INDEX IF NOT EXISTS usage_address ON usage (address, id);
 
-  -- Columns added after the first release. CREATE TABLE IF NOT EXISTS leaves
-  -- an existing table alone, so each is added by hand when missing.
-  ALTER TABLE ledger ADD COLUMN IF NOT EXISTS network TEXT;
-  ALTER TABLE ledger ADD COLUMN IF NOT EXISTS tx_hash TEXT;
+  -- Accounts used to be wallet addresses, in a column called "address". A
+  -- database from that time is brought across here: the column is renamed and
+  -- the rows keep their old ids until the person signs in again, when
+  -- users.ts moves them under their Privy id. Tables that only served on-chain
+  -- earning (claimed_txs, pending_claims, referrals, topups, …) are left
+  -- alone; drop them by hand once the data is no longer wanted.
+  DO $$
+  DECLARE t TEXT;
+  BEGIN
+    FOREACH t IN ARRAY ARRAY['ledger', 'api_keys', 'sessions', 'conversations', 'creations', 'cli_logins', 'usage'] LOOP
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = t AND column_name = 'address') THEN
+        EXECUTE format('ALTER TABLE %I RENAME COLUMN address TO user_id', t);
+      END IF;
+    END LOOP;
+    ALTER INDEX IF EXISTS ledger_address RENAME TO ledger_user;
+    ALTER INDEX IF EXISTS api_keys_address RENAME TO api_keys_user;
+    ALTER INDEX IF EXISTS sessions_address RENAME TO sessions_user;
+    ALTER INDEX IF EXISTS conversations_address RENAME TO conversations_user;
+    ALTER INDEX IF EXISTS creations_address RENAME TO creations_user;
+    ALTER INDEX IF EXISTS usage_address RENAME TO usage_user;
+  END $$;
+
+  CREATE INDEX IF NOT EXISTS ledger_user ON ledger (user_id, id);
+  CREATE INDEX IF NOT EXISTS api_keys_user ON api_keys (user_id);
+  CREATE INDEX IF NOT EXISTS purchases_user ON purchases (user_id, created_at);
+  CREATE INDEX IF NOT EXISTS sessions_user ON sessions (user_id);
+  CREATE INDEX IF NOT EXISTS conversations_user ON conversations (user_id, updated_at);
+  CREATE INDEX IF NOT EXISTS creations_user ON creations (user_id, created_at);
+  CREATE INDEX IF NOT EXISTS usage_user ON usage (user_id, id);
 `;
 
 export type Row = Record<string, unknown>;
@@ -281,7 +226,7 @@ export const run = async (text: string, params?: unknown[]) => (await db().query
 
 // Runs `work` in one transaction: every db() call inside it goes through the
 // same connection, and it is committed only if `work` returns. `lock` names a
-// row (a wallet, say) whose transactions must not overlap: two claims racing
+// row (a user, say) whose transactions must not overlap: two purchases racing
 // each other are then run one after the other, not interleaved.
 export async function transaction<T>(work: () => Promise<T>, lock?: string): Promise<T> {
   if (current.getStore()) {

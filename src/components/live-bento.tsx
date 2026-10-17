@@ -20,23 +20,23 @@ function useLoop(step: () => void, ms: number) {
   }, [ms]);
 }
 
-const tasks = [
-  { label: "Deployed a contract", credits: 500 },
-  { label: "Swapped on a partner protocol", credits: 250 },
-  { label: "Contract interaction", credits: 50 },
-  { label: "Reached 50 transactions", credits: 300 },
-  { label: "Streak bonus, day 7 in a row", credits: 70 },
+const calls = [
+  { label: "anthropic/claude-sonnet-4.5 · 1.2k in / 380 out", credits: 14 },
+  { label: "openai/gpt-4o-mini · 900 in / 210 out", credits: 1 },
+  { label: "google/gemini-2.5-flash · 4.1k in / 600 out", credits: 3 },
+  { label: "openai/gpt-image-2 · 1 image", credits: 42 },
+  { label: "meta/llama-4-maverick · 2.0k in / 450 out", credits: 2 },
 ];
 
-// The newest task keeps arriving at the top while the rest glide down a row.
-export const TaskFeed = memo(function TaskFeed() {
+// The newest call keeps arriving at the top while the rest glide down a row.
+export const UsageFeed = memo(function UsageFeed() {
   const [turn, setTurn] = useState(0);
   useLoop(() => setTurn((count) => count + 1), 2200);
 
   return (
     <div className="relative h-52 overflow-hidden" aria-hidden>
-      {tasks.map((task, index) => {
-        const row = (index + turn) % tasks.length;
+      {calls.map((task, index) => {
+        const row = (index + turn) % calls.length;
         return (
           <div
             key={task.label}
@@ -44,7 +44,7 @@ export const TaskFeed = memo(function TaskFeed() {
             style={
               {
                 "--row": row,
-                opacity: row === tasks.length - 1 ? 0 : 1,
+                opacity: row === calls.length - 1 ? 0 : 1,
                 transitionDelay: row === 0 ? "0s, 0.45s" : "0s",
               } as React.CSSProperties
             }
@@ -54,7 +54,7 @@ export const TaskFeed = memo(function TaskFeed() {
               <span className={`size-1.5 shrink-0 rounded-full ${row === 0 ? "bg-accent" : "bg-line"}`} />
               <span className="truncate">{task.label}</span>
             </span>
-            <span className="font-mono text-accent">+{formatCredits(task.credits)}</span>
+            <span className="font-mono text-accent">−{formatCredits(task.credits)}</span>
           </div>
         );
       })}
@@ -63,10 +63,10 @@ export const TaskFeed = memo(function TaskFeed() {
 });
 
 const prompts = [
-  { maker: 0, text: "Audit this contract for reentrancy bugs", cost: 14 },
-  { maker: 1, text: "Summarize today's governance proposals", cost: 9 },
-  { maker: 2, text: "Write tests for my token vesting schedule", cost: 11 },
-  { maker: 5, text: "Explain this failed transaction trace", cost: 3 },
+  { maker: 0, text: "Review this pull request for race conditions", cost: 14 },
+  { maker: 1, text: "Summarize today's customer tickets", cost: 9 },
+  { maker: 2, text: "Write tests for my billing module", cost: 11 },
+  { maker: 5, text: "Explain this stack trace", cost: 3 },
 ];
 
 // A prompt types itself, the model "thinks", the cost lands, and the next one starts.
@@ -136,7 +136,7 @@ const keys = [
 export const KeyStatus = memo(function KeyStatus() {
   const [notice, setNotice] = useState(0);
   useLoop(() => setNotice((count) => count + 1), 3400);
-  const notices = ["Streak +70", "Referral +113", "Milestone +300"];
+  const notices = ["Bought +10,000", "Spent −14", "Bought +20,000"];
   const showing = notice % 2 === 1;
 
   return (

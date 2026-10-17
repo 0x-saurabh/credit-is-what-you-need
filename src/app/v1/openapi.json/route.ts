@@ -250,7 +250,7 @@ export const GET = v1(() => {
       },
       "/usage": {
         get: {
-          summary: "Calls this wallet paid for",
+          summary: "Calls this account paid for",
           operationId: "listUsage",
           parameters: [
             { name: "from", in: "query", schema: { type: "string", format: "date-time" }, description: "Start of the period (inclusive)." },
@@ -322,7 +322,8 @@ export const GET = v1(() => {
           type: "object",
           properties: {
             object: { const: "account" },
-            address: { type: "string", description: "The wallet this key belongs to." },
+            user_id: { type: "string", description: "The account this key belongs to." },
+            email: { type: ["string", "null"] },
             key: { type: "object", properties: { name: { type: "string" }, prefix: { type: "string" } } },
             balance: { type: "integer" },
             held: { type: "integer", description: "Credits promised to calls still running." },

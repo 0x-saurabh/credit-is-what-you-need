@@ -46,7 +46,7 @@ test("a conversation is named after its first message and keeps its messages in 
   assert.equal((await getConversation(ALICE, chat.id))?.messages, 2);
 });
 
-test("a wallet sees only its own conversations, and a long message is cut to the limit", async () => {
+test("a user sees only their own conversations, and a long message is cut to the limit", async () => {
   const mine = await createConversation(BOB, { model: "openai/gpt-4o", title: "Bob's" });
   assert.equal(await getConversation(ALICE, mine.id), null);
   assert.equal(await appendMessage(ALICE, mine.id, { role: "user", content: "not yours" }), null);
@@ -81,7 +81,7 @@ test("the newest conversation comes first", async () => {
   void newer;
 });
 
-test("the library keeps pictures with their prompt and cost, per wallet", async () => {
+test("the library keeps pictures with their prompt and cost, per user", async () => {
   const id = await saveCreation(ALICE, { kind: "image", prompt: "a cat", model: "openai/gpt-image-2", credits: 48, files: [{ base64: "AAAA", mediaType: "image/png" }] });
   const mine = await listCreations(ALICE);
   assert.equal(mine.length, 1);
@@ -94,7 +94,7 @@ test("the library keeps pictures with their prompt and cost, per wallet", async 
   assert.deepEqual(await listCreations(ALICE), []);
 });
 
-test("clearing the workspace removes everything the wallet kept", async () => {
+test("clearing the workspace removes everything the user kept", async () => {
   const chat = await createConversation(ALICE, { model: "kredit/echo", title: "to clear" });
   await appendMessage(ALICE, chat.id, { role: "user", content: "bye" });
   await saveCreation(ALICE, { kind: "video", prompt: "waves", model: "google/veo", files: [{ base64: "BBBB", mediaType: "video/mp4" }] });

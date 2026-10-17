@@ -1,7 +1,7 @@
 # Render Blueprint for Kredit.
 #
-# Credits, API keys and display names live in Neon Postgres (DATABASE_URL), so
-# the service itself keeps nothing on disk and survives restarts and deploys
+# Users, credits, purchases and API keys live in Neon Postgres (DATABASE_URL),
+# so the service itself keeps nothing on disk and survives restarts and deploys
 # on any plan. Apply it from the Render dashboard: New > Blueprint > pick this
 # repository.
 services:
@@ -36,5 +36,10 @@ services:
         sync: false
       - key: OPENROUTER_API_KEY
         sync: false
-      - key: BLOCKSCOUT_API_KEY
+      # Payments (Dodo Payments); see .env.example.
+      - key: DODO_PAYMENTS_API_KEY
+        sync: false
+      - key: DODO_PAYMENTS_WEBHOOK_KEY
+        sync: false
+      - key: DODO_PAYMENTS_ENVIRONMENT
         sync: false

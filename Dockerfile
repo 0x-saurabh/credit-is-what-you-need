@@ -1,13 +1,7 @@
 # syntax=docker/dockerfile:1
 
-# The wallet SDKs pull in two small native modules (bufferutil, utf-8-validate)
-# with no prebuilt binary for this Node version, so this stage alone carries a
-# compiler. Nothing of it reaches the runtime image.
 FROM node:24-slim AS deps
 WORKDIR /app
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends python3 make g++ \
-  && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -17,9 +11,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # NEXT_PUBLIC_* values are written into the browser bundle at build time, so
 # they are build arguments, not runtime environment variables.
 ARG NEXT_PUBLIC_PRIVY_APP_ID=
-ARG NEXT_PUBLIC_RPC_MAINNET=
 ENV NEXT_PUBLIC_PRIVY_APP_ID=$NEXT_PUBLIC_PRIVY_APP_ID
-ENV NEXT_PUBLIC_RPC_MAINNET=$NEXT_PUBLIC_RPC_MAINNET
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
@@ -32,7 +24,7 @@ ENV PORT=3000
 # Docker sets HOSTNAME to the container id; the server must listen on all
 # interfaces to be reachable through the published port.
 ENV HOSTNAME=0.0.0.0
-# DATABASE_URL (Neon Postgres) comes from the environment at run time.
+# DATABASE_URL (Neon Postgres) and the other secrets come from the environment at run time.
 
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static

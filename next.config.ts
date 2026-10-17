@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
     return [
       { source: "/privacy", destination: "/docs/legal/privacy", permanent: true },
       { source: "/terms", destination: "/docs/legal/terms", permanent: true },
-      { source: "/fairness", destination: "/docs/legal/fairness", permanent: true },
       // The model board moved into the catalog.
       { source: "/models", destination: "/catalog", permanent: true },
     ];

@@ -5,22 +5,22 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { CopyButton } from "@/components/code-block";
 import { ArrowRightIcon } from "@/components/icons";
 import { ModelLogo } from "@/components/model-logo";
-import { WalletButton } from "@/components/wallet-button";
+import { SignInButton } from "@/components/sign-in-button";
 import { formatCredits } from "@/lib/format";
 import { PaperclipIcon, PersonIcon, SpeakerIcon } from "./icons";
 import type { Failure, Turn } from "./types";
 
 const starters = [
-  "Explain gas fees to someone who has never used a blockchain.",
-  "Write a Solidity function that splits a payment between three addresses.",
-  "Summarize what an ERC-20 approval does, in two sentences.",
+  "Explain how a hash map works to someone who has never programmed.",
+  "Write a TypeScript function that splits a bill between three people, rounding fairly.",
+  "Summarize what an API rate limit is, in two sentences.",
 ];
 
 const facts = [
   ["Same gateway", "Requests take the route your API key takes, so what works here works in your code."],
   ["Same balance", "Replies are paid from your credits. Nothing to paste, no card to add."],
   ["Every cost shown", "Each reply lists its model, how long it took and what it cost."],
-  ["Kept for you", "Conversations are saved to your wallet and follow you across devices, until you delete them."],
+  ["Kept for you", "Conversations are saved to your account and follow you across devices, until you delete them."],
 ];
 
 const link = "text-fog underline decoration-line underline-offset-4 transition-colors hover:decoration-accent";
@@ -31,12 +31,8 @@ function advice(code?: string) {
     case "insufficient_credits":
       return (
         <>
-          <Link href="/dashboard/earn" className={link}>
-            Earn credits
-          </Link>{" "}
-          from your on-chain activity or{" "}
           <Link href="/dashboard/credits" className={link}>
-            buy credits
+            Buy credits
           </Link>
           , then send it again.
         </>
@@ -184,8 +180,8 @@ function SignedOut() {
         ))}
       </dl>
       <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-3">
-        <WalletButton label="Sign in" />
-        <p className="text-xs text-mist">Signing in is a free signature. It costs no gas.</p>
+        <SignInButton label="Sign in" />
+        <p className="text-xs text-mist">An email code or Google. No card needed to look around.</p>
       </div>
     </div>
   );

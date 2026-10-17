@@ -1,26 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { formatCredits, shortAddress } from "@/lib/format";
-import { networks } from "@/lib/networks";
+import { formatCredits } from "@/lib/format";
 import { useKreditAccount } from "@/lib/use-kredit-account";
 
 const kindLabel: Record<string, string> = {
+  purchase: "Bought",
+  grant: "Added",
+  spend: "Spent",
+  // Earlier programmes; old rows keep their label.
   claim: "Tasks",
   milestone: "Milestone",
   streak: "Streak",
   referral: "Referral",
-  gasback: "Gas-Back", // earlier programs; old rows keep their label
+  gasback: "Gas-Back",
   royalty: "Royalties",
   topup: "Bought",
-  spend: "Spent",
 };
 
 const relative = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 const WEEK = 7 * 86_400;
 
 // "2 minutes ago" while it is recent, a plain date once it is not.
-function when(iso: string) {
+export function when(iso: string) {
   const date = new Date(iso);
   const seconds = (date.getTime() - Date.now()) / 1000;
   if (Math.abs(seconds) > WEEK) return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -46,10 +48,10 @@ export function ActivityTable({ limit }: { limit?: number }) {
     return (
       <div className="empty">
         <strong>No activity yet.</strong>
-        Credits you earn and spend will be listed here.
+        Credits you buy and spend will be listed here.
         <div className="mt-4">
-          <Link href="/dashboard/earn" className="btn-sm btn-sm-primary">
-            Scan my record
+          <Link href="/dashboard/credits" className="btn-sm btn-sm-primary">
+            Buy credits
           </Link>
         </div>
       </div>
@@ -74,23 +76,7 @@ export function ActivityTable({ limit }: { limit?: number }) {
                   <td>
                     <span className="chip">{kindLabel[entry.kind] ?? entry.kind}</span>
                   </td>
-                  <td className="max-w-36 truncate text-mist sm:max-w-64">
-                    {entry.memo}
-                    {entry.txHash && entry.network && networks[entry.network] && (
-                      <>
-                        {" · "}
-                        <a
-                          href={`${networks[entry.network].explorerUrl}/tx/${entry.txHash}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          title="The on-chain receipt for this credit"
-                          className="font-mono text-xs underline-offset-4 hover:text-accent hover:underline"
-                        >
-                          receipt {shortAddress(entry.txHash)}
-                        </a>
-                      </>
-                    )}
-                  </td>
+                  <td className="max-w-36 truncate text-mist sm:max-w-64">{entry.memo}</td>
                   <td className="whitespace-nowrap text-mist" title={new Date(entry.createdAt).toLocaleString()} suppressHydrationWarning>
                     {when(entry.createdAt)}
                   </td>

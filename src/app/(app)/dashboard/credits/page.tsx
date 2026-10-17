@@ -1,8 +1,8 @@
-import { TopUp } from "@/components/top-up";
 import { costExamples } from "@/lib/cost-examples";
 import { formatCredits } from "@/lib/format";
 import { CREDITS_PER_USD, MARGIN, MIN_CREDITS_PER_REQUEST } from "@/lib/pricing";
 import { PageHeader, Stack } from "../page-header";
+import { BuyCredits, PurchaseHistory } from "../purchases";
 
 export const metadata = { title: "Credits — Kredit" };
 
@@ -15,10 +15,7 @@ const rules = [
 export default function Credits() {
   return (
     <>
-      <PageHeader
-        title="Credits"
-        lede="How credits are priced, what a request costs, and how to buy more when your record has not earned enough."
-      />
+      <PageHeader title="Credits" lede="How credits are priced, what a request costs, and how to buy more." />
 
       <div className="kpi-strip animate-rise" style={{ "--kpis": 3 } as React.CSSProperties}>
         {rules.map(([value, text], index) => (
@@ -27,6 +24,13 @@ export default function Credits() {
             <p className="kpi-note">{text}</p>
           </div>
         ))}
+      </div>
+
+      <div className="mt-10">
+        <Stack>
+          <BuyCredits />
+          <PurchaseHistory />
+        </Stack>
       </div>
 
       <section className="mt-10 animate-rise">
@@ -67,12 +71,6 @@ export default function Credits() {
           <span className="font-mono text-fog">x-kredit-balance</span>, so your code always knows what a call cost.
         </p>
       </section>
-
-      <div className="mt-10">
-        <Stack>
-          <TopUp />
-        </Stack>
-      </div>
     </>
   );
 }

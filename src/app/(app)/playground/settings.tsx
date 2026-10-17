@@ -120,9 +120,6 @@ export function Settings({ mode, model, onModel, compareModel, onCompareModel, s
             <Link href="/dashboard/credits" className={`btn-sm ${empty ? "btn-sm-primary" : ""}`}>
               Buy credits
             </Link>
-            <Link href="/dashboard/earn" className="btn-sm">
-              Earn credits
-            </Link>
           </div>
         </section>
 

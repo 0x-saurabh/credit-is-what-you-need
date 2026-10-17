@@ -1,25 +1,19 @@
 import type { PrivyClientConfig } from "@privy-io/react-auth";
-import { base, robinhood } from "wagmi/chains";
 
 // The Privy app that signs people in. Public: it is baked into the browser
 // bundle. The matching secret (PRIVY_APP_SECRET) stays on the server.
 export const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? "";
 
-// One dialog for everyone: an email code, Google, or a wallet they already
-// have. Someone who arrives without a wallet gets an embedded one, made by
-// Privy at sign-up, and that address is their Kredit account.
+// One dialog for everyone: an email code or Google. Privy's user id is the
+// Kredit account; no wallet is made or asked for.
 export const privyConfig: PrivyClientConfig = {
-  loginMethods: ["email", "google", "wallet"],
+  loginMethods: ["email", "google"],
   appearance: {
     theme: "light",
     accentColor: "#c2410c",
-    walletChainType: "ethereum-only",
-    showWalletLoginFirst: false,
   },
   embeddedWallets: {
-    ethereum: { createOnLogin: "users-without-wallets" },
-    showWalletUIs: true,
+    ethereum: { createOnLogin: "off" },
+    solana: { createOnLogin: "off" },
   },
-  supportedChains: [robinhood, base],
-  defaultChain: robinhood,
 };

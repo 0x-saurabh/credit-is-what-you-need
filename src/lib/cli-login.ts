@@ -2,8 +2,8 @@ import { randomInt } from "node:crypto";
 import { NOW, one, run, transaction } from "./db.ts";
 import { createKey, KeyLimitError } from "./ledger.ts";
 
-// How the CLI signs in without ever seeing the wallet: the terminal asks for
-// a code, the person opens the verify page, signs in with the wallet as usual
+// How the CLI signs in without ever seeing the browser session: the terminal asks for
+// a code, the person opens the verify page, signs in as usual
 // and approves; a key is made for the CLI and handed over exactly once.
 
 export const LOGIN_TTL_S = 600; // ten minutes to approve
@@ -32,11 +32,11 @@ export async function startLogin(host: string | null) {
   return { code, expiresAt, interval: POLL_INTERVAL_S };
 }
 
-export type LoginRow = { code: string; host: string | null; address: string | null; keyId: string | null; keyValue: string | null; expiresAt: number; approvedAt: string | null; claimedAt: string | null };
+export type LoginRow = { code: string; host: string | null; userId: string | null; keyId: string | null; keyValue: string | null; expiresAt: number; approvedAt: string | null; claimedAt: string | null };
 
 export function getLogin(code: string) {
   return one<LoginRow>(
-    `SELECT code, host, address, key_id AS "keyId", key_value AS "keyValue", expires_at AS "expiresAt", approved_at AS "approvedAt", claimed_at AS "claimedAt"
+    `SELECT code, host, userId, key_id AS "keyId", key_value AS "keyValue", expires_at AS "expiresAt", approved_at AS "approvedAt", claimed_at AS "claimedAt"
      FROM cli_logins WHERE code = ?`,
     [normalizeCode(code)],
   );
@@ -50,9 +50,9 @@ export class LoginError extends Error {
   }
 }
 
-// The signed-in wallet approves the code: a key is made in its name and parked
+// The signed-in person approves the code: a key is made in its name and parked
 // on the row for the terminal to collect.
-export async function approveLogin(code: string, address: string) {
+export async function approveLogin(code: string, userId: string) {
   return transaction(async () => {
     const row = await getLogin(code);
     if (!row) throw new LoginError("That code is not known. Run `kredit login` again.", 404);
@@ -60,19 +60,19 @@ export async function approveLogin(code: string, address: string) {
     if (row.approvedAt) throw new LoginError("That code was already approved.", 409);
     let key;
     try {
-      key = await createKey(address, `${KEY_NAME_PREFIX}${row.host ?? "a terminal"}`.slice(0, 40));
+      key = await createKey(userId, `${KEY_NAME_PREFIX}${row.host ?? "a terminal"}`.slice(0, 40));
     } catch (error) {
       if (error instanceof KeyLimitError) throw new LoginError(error.message, 409);
       throw error;
     }
-    await run(`UPDATE cli_logins SET address = ?, key_id = ?, key_value = ?, approved_at = ${NOW} WHERE code = ?`, [
-      address.toLowerCase(),
+    await run(`UPDATE cli_logins SET userId = ?, key_id = ?, key_value = ?, approved_at = ${NOW} WHERE code = ?`, [
+      userId,
       key.id,
       key.key,
       row.code,
     ]);
-    return { address: address.toLowerCase(), keyName: key.name, host: row.host };
-  }, address.toLowerCase());
+    return { userId: userId, keyName: key.name, host: row.host };
+  }, userId);
 }
 
 // The terminal asks whether its code was approved. The key is returned once;
@@ -84,5 +84,5 @@ export async function collectLogin(code: string) {
   if (!row.approvedAt) return { status: "pending" as const, interval: POLL_INTERVAL_S };
   if (row.claimedAt || !row.keyValue) return { status: "collected" as const };
   await run(`UPDATE cli_logins SET key_value = NULL, claimed_at = ${NOW} WHERE code = ?`, [row.code]);
-  return { status: "approved" as const, key: row.keyValue, address: row.address!, keyId: row.keyId! };
+  return { status: "approved" as const, key: row.keyValue, userId: row.userId!, keyId: row.keyId! };
 }

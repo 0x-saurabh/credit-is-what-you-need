@@ -1,10 +1,10 @@
 import type { ComponentType } from "react";
 import { Account, Billing, Embeddings, Errors, Evaluations, Images, Limits, Models, OpenApi, Videos } from "./api-more";
 import { Authentication, ChatCompletions, Messages, Responses, Streaming } from "./api-core";
-import { Claims, Record, ReferralsPage, Scoring, StreaksPage, TopUps } from "./earn";
+import { Buying } from "./credits";
 import { HowItWorks, QuickstartPage, Rules } from "./getting-started";
 import { Integrations } from "./integrations";
-import { Fairness, Privacy, Terms } from "./legal";
+import { Privacy, Terms } from "./legal";
 import { Dashboard, Playground, Security, SignIn } from "./platform";
 
 // Slug → page. The slugs must match nav.ts; the route 404s for anything else.
@@ -12,12 +12,7 @@ export const pages: Record<string, ComponentType> = {
   quickstart: QuickstartPage,
   "how-it-works": HowItWorks,
   rules: Rules,
-  "earn/record": Record,
-  "earn/scoring": Scoring,
-  "earn/streaks": StreaksPage,
-  "earn/referrals": ReferralsPage,
-  "earn/claims": Claims,
-  "earn/top-ups": TopUps,
+  "credits/buying": Buying,
   "api/authentication": Authentication,
   "api/chat-completions": ChatCompletions,
   "api/responses": Responses,
@@ -38,7 +33,6 @@ export const pages: Record<string, ComponentType> = {
   "platform/dashboard": Dashboard,
   "platform/playground": Playground,
   "platform/security": Security,
-  "legal/fairness": Fairness,
   "legal/privacy": Privacy,
   "legal/terms": Terms,
 };

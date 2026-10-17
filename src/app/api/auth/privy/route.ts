@@ -1,15 +1,13 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import { getAddress, isAddress, type Address } from "viem";
-import { bindInviter } from "@/lib/invite-cookie";
 import { createSession } from "@/lib/session";
+import { adoptLegacyAccounts, touchUser } from "@/lib/users";
 
 // Turns a Privy login into a Kredit session.
 //
-// The browser sends Privy's access token and the wallet it wants to be. The
-// token is checked against Privy's public keys for this app, then the user is
-// fetched from Privy with the app secret and the wallet is accepted only if it
-// is one of that user's own Ethereum wallets. The address is the account: an
-// email user gets Privy's embedded wallet, a wallet user keeps their own.
+// The browser sends Privy's access token. The token is checked against Privy's
+// public keys for this app; its subject is Privy's user id, and that id is the
+// account. The user is then fetched from Privy with the app secret for their
+// email and name, which the dashboard shows.
 
 const fail = (error: string, status = 400) => Response.json({ error }, { status });
 
@@ -21,13 +19,13 @@ const jwks = appId ? createRemoteJWKSet(new URL(`https://auth.privy.io/api/v1/ap
 
 type LinkedAccount = {
   type: string;
-  address?: string;
+  address?: string; // for "email" this is the email address; for wallets, the wallet
+  email?: string;
+  name?: string;
   chain_type?: string;
-  wallet_client_type?: string;
-  connector_type?: string;
 };
 
-async function walletsOf(userId: string) {
+async function profileOf(userId: string) {
   const response = await fetch(`https://api.privy.io/v1/users/${encodeURIComponent(userId)}`, {
     headers: {
       authorization: `Basic ${Buffer.from(`${appId}:${appSecret}`).toString("base64")}`,
@@ -37,9 +35,15 @@ async function walletsOf(userId: string) {
   });
   if (!response.ok) throw new Error(`Privy user lookup failed (${response.status})`);
   const user = (await response.json()) as { linked_accounts?: LinkedAccount[] };
-  return (user.linked_accounts ?? []).filter(
-    (account) => account.type === "wallet" && account.chain_type === "ethereum" && account.address && isAddress(account.address),
-  );
+  const accounts = user.linked_accounts ?? [];
+  const email = accounts.find((account) => account.type === "email")?.address ?? accounts.find((account) => account.email)?.email ?? null;
+  const name = accounts.find((account) => account.name)?.name ?? null;
+  // Wallets Privy still lists for people who signed up when accounts were
+  // wallet addresses. Only used to carry their old rows across; see users.ts.
+  const legacyWallets = accounts
+    .filter((account) => account.type === "wallet" && account.chain_type === "ethereum" && account.address)
+    .map((account) => account.address!);
+  return { email, name, legacyWallets };
 }
 
 export async function POST(request: Request) {
@@ -47,7 +51,6 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   const token: unknown = body?.token;
-  const wanted: unknown = body?.address;
   if (typeof token !== "string" || !token) return fail("token is required");
 
   let userId: string;
@@ -59,24 +62,15 @@ export async function POST(request: Request) {
     return fail("Privy login is invalid or expired", 401);
   }
 
-  let wallets: LinkedAccount[];
+  let profile: Awaited<ReturnType<typeof profileOf>>;
   try {
-    wallets = await walletsOf(userId);
+    profile = await profileOf(userId);
   } catch {
     return fail("Could not read the account from Privy, please try again", 502);
   }
-  if (wallets.length === 0) return fail("This account has no wallet yet, please try again in a moment", 409);
 
-  // The wallet the browser asked for, if it is really theirs; otherwise the
-  // embedded wallet, and failing that the first one Privy lists.
-  const asked = typeof wanted === "string" && isAddress(wanted) ? wanted.toLowerCase() : null;
-  const chosen =
-    wallets.find((wallet) => wallet.address!.toLowerCase() === asked) ??
-    wallets.find((wallet) => wallet.wallet_client_type === "privy" || wallet.connector_type === "embedded") ??
-    wallets[0];
-  const address: Address = getAddress(chosen.address!);
-
-  await createSession(address);
-  await bindInviter(address);
-  return Response.json({ address });
+  const user = await touchUser({ id: userId, email: profile.email, name: profile.name });
+  await adoptLegacyAccounts(userId, profile.legacyWallets);
+  await createSession(userId);
+  return Response.json({ userId: user.id, email: user.email, name: user.name });
 }

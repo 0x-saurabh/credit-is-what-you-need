@@ -25,7 +25,7 @@ export function Embeddings() {
         code={`curl {origin}/v1/embeddings \\
   -H "Authorization: Bearer $KREDIT_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{ "model": "openai/text-embedding-3-small", "input": ["a wallet", "a credit"] }'`}
+  -d '{ "model": "openai/text-embedding-3-small", "input": ["a question", "an answer"] }'`}
       />
       <H2>Request</H2>
       <Params>
@@ -121,7 +121,7 @@ export function Images() {
         code={`curl {origin}/v1/images/generations \\
   -H "Authorization: Bearer $KREDIT_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{ "model": "openai/gpt-image-2", "prompt": "a receipt printed on cream paper", "n": 1, "size": "1024x1024" }'`}
+  -d '{ "model": "openai/gpt-image-2", "prompt": "a lighthouse at dusk, oil on canvas", "n": 1, "size": "1024x1024" }'`}
       />
       <H2>Request</H2>
       <Params>
@@ -412,7 +412,7 @@ export function Errors() {
 
 {
   "error": {
-    "message": "You are out of credits. Earn more on your Kredit dashboard.",
+    "message": "You are out of credits. Buy more on your Kredit dashboard.",
     "type": "invalid_request_error",
     "code": "insufficient_credits"
   }
@@ -446,13 +446,13 @@ export function Errors() {
 
 export function Limits() {
   return (
-    <Doc slug="api/limits" lede="Enough for a busy tool, and enough headroom that one script cannot drain a wallet by mistake.">
+    <Doc slug="api/limits" lede="Enough for a busy tool, and enough headroom that one script cannot drain an account by mistake.">
       <Table
         head={["Limit", "Value"]}
         rows={[
-          ["Requests per minute", `${RATE_LIMIT} per API key. A wallet with ${MAX_ACTIVE_KEYS} keys gets ${MAX_ACTIVE_KEYS} × ${RATE_LIMIT}.`],
-          ["Playground", `${RATE_LIMIT} per minute per wallet.`],
-          ["Active API keys", `${MAX_ACTIVE_KEYS} per wallet. Revoke one to make room.`],
+          ["Requests per minute", `${RATE_LIMIT} per API key. An account with ${MAX_ACTIVE_KEYS} keys gets ${MAX_ACTIVE_KEYS} × ${RATE_LIMIT}.`],
+          ["Playground", `${RATE_LIMIT} per minute per account.`],
+          ["Active API keys", `${MAX_ACTIVE_KEYS} per account. Revoke one to make room.`],
           ["Key name", "40 characters."],
           ["Images per request", "1 to 4."],
           ["Video length", "1 to 20 seconds."],
@@ -500,7 +500,8 @@ export function Account() {
 
 {
   "object": "account",
-  "address": "0x71c7…976f",
+  "user_id": "did:privy:cm1abc…",
+  "email": "you@example.com",
   "key": { "name": "Cursor", "prefix": "kred_sk_ab12…wxyz" },
   "balance": 4988,
   "held": 120,
@@ -512,7 +513,7 @@ export function Account() {
       />
       <Params>
         <Param name="balance" type="integer">
-          Every credit the wallet holds right now.
+          Every credit the account holds right now.
         </Param>
         <Param name="held" type="integer">
           Credits reserved by calls still running (streams, images, video). Released when they settle.
@@ -524,10 +525,10 @@ export function Account() {
           The balance divided by {number(CREDITS_PER_USD)}.
         </Param>
         <Param name="total_spent" type="integer">
-          Everything this wallet has ever spent, across all its keys and the playground.
+          Everything this account has ever spent, across all its keys and the playground.
         </Param>
       </Params>
-      <p>A key sees only what it needs to spend. Never the wallet&apos;s other keys, nor where its credits came from.</p>
+      <p>A key sees only what it needs to spend. Never the account&apos;s other keys, nor its purchases.</p>
 
       <Endpoint method="GET" path="/v1/usage" />
       <OriginCode

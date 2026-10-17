@@ -21,7 +21,7 @@ export function KpiStrip() {
         <p className="kpi-note">{data ? dollars(data.balance) : "Loading"}</p>
       </div>
       <div className="kpi">
-        <p className="kpi-label">Earned, all time</p>
+        <p className="kpi-label">Added, all time</p>
         <p className="kpi-value">{data ? <CountUp value={data.earned} duration={900} /> : blank}</p>
         <p className="kpi-note">{data ? dollars(data.earned) : "Loading"}</p>
       </div>

@@ -8,8 +8,8 @@ import { creditsFor, estimateTokens } from "@/lib/pricing";
 export const POST = v1(async (request) => {
   const caller = await authenticate(request);
   if (caller instanceof Response) return caller;
-  if ((await getBalance(caller.address)) <= 0) {
-    return apiError(402, "You are out of credits. Earn more on your Kredit dashboard.", "insufficient_credits");
+  if ((await getBalance(caller.userId)) <= 0) {
+    return apiError(402, "You are out of credits. Buy more on your Kredit dashboard.", "insufficient_credits");
   }
 
   const body = (await request.json().catch(() => null)) as { model?: unknown; input?: unknown } | null;
@@ -31,7 +31,7 @@ export const POST = v1(async (request) => {
 
   const text = Array.isArray(body.input) ? body.input.map(String).join("\n") : String(body.input);
   const needed = creditsFor(price, { inputTokens: estimateTokens(text), outputTokens: 0 });
-  if ((await getBalance(caller.address)) < needed) {
+  if ((await getBalance(caller.userId)) < needed) {
     return apiError(402, `This call needs about ${needed} credits, more than your balance covers.`, "insufficient_credits");
   }
 

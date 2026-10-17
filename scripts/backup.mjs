@@ -8,20 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { query } from "./lib/db.mjs";
 
-const TABLES = [
-  "ledger",
-  "claimed_txs",
-  "claimed_streak_days",
-  "claimed_milestones",
-  "referrals",
-  "api_keys",
-  "profiles",
-  "topups",
-  "sessions",
-  "spent_nonces",
-  "pending_claims",
-  "usage",
-];
+const TABLES = ["users", "ledger", "purchases", "api_keys", "sessions", "usage", "conversations", "messages", "creations", "cli_logins"];
 
 const dir = process.env.BACKUP_DIR ?? "data/backups";
 const keep = Math.max(1, Number(process.env.BACKUP_KEEP) || 14);

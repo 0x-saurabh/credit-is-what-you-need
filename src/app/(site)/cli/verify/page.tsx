@@ -2,7 +2,7 @@ import { Verify } from "./verify";
 
 export const metadata = { title: "Approve a CLI login — Kredit" };
 
-// The page `kredit login` opens: shows the code, asks the wallet to sign in,
+// The page `kredit login` opens: shows the code, asks the person to sign in,
 // and turns the code into a key the terminal collects.
 export default async function VerifyPage({ searchParams }: { searchParams: Promise<{ code?: string }> }) {
   const { code } = await searchParams;

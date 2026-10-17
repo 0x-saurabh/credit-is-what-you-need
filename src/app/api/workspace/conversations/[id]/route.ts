@@ -8,9 +8,9 @@ export async function GET(_request: Request, context: Context) {
   const session = await getSession();
   if (!session) return Response.json({ error: "Sign in first" }, { status: 401 });
   const { id } = await context.params;
-  const conversation = await getConversation(session.address, id);
+  const conversation = await getConversation(session.userId, id);
   if (!conversation) return Response.json({ error: "Not found" }, { status: 404 });
-  return Response.json({ ...conversation, messages: await listMessages(session.address, id) });
+  return Response.json({ ...conversation, messages: await listMessages(session.userId, id) });
 }
 
 // Rename it, change its model or its system prompt. { title?, model?, system? }
@@ -24,7 +24,7 @@ export async function PATCH(request: Request, context: Context) {
     ...(typeof body?.model === "string" && { model: body.model }),
     ...((typeof body?.system === "string" || body?.system === null) && { system: body.system as string | null }),
   };
-  const conversation = await updateConversation(session.address, id, patch);
+  const conversation = await updateConversation(session.userId, id, patch);
   if (!conversation) return Response.json({ error: "Not found" }, { status: 404 });
   return Response.json(conversation);
 }
@@ -34,6 +34,6 @@ export async function DELETE(_request: Request, context: Context) {
   const session = await getSession();
   if (!session) return Response.json({ error: "Sign in first" }, { status: 401 });
   const { id } = await context.params;
-  if (!(await deleteConversation(session.address, id))) return Response.json({ error: "Not found" }, { status: 404 });
+  if (!(await deleteConversation(session.userId, id))) return Response.json({ error: "Not found" }, { status: 404 });
   return Response.json({ ok: true });
 }

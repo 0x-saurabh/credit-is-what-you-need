@@ -1,17 +1,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { ApiKeyInfo, LedgerEntry } from "@/lib/ledger";
+import type { ApiKeyInfo, LedgerEntry, Purchase } from "@/lib/ledger";
 
 export const ACCOUNT_KEY = ["account"];
 
 export type AccountResponse = {
-  address: string;
+  userId: string;
+  email: string | null;
+  name: string | null;
   balance: number;
   earned: number; // all credits that ever came in
   spent: number;
   keys: ApiKeyInfo[];
   activity: LedgerEntry[];
+  purchases: Purchase[];
 };
 
 export async function api<T>(url: string, init?: RequestInit): Promise<T> {

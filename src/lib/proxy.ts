@@ -15,8 +15,8 @@ const SERVER_ONLY_FIELDS = ["provider", "providerOptions", "provider_options", "
 
 export async function proxyCall(caller: Caller, request: Request, body: Record<string, unknown>, dialect: Dialect) {
   const { error } = dialect;
-  if ((await getBalance(caller.address)) <= 0) {
-    return error(402, "You are out of credits. Earn more on your Kredit dashboard.", "insufficient_credits");
+  if ((await getBalance(caller.userId)) <= 0) {
+    return error(402, "You are out of credits. Buy more on your Kredit dashboard.", "insufficient_credits");
   }
   const parsed = dialect.parse(body);
   if (typeof parsed === "string") return error(400, parsed, "invalid_body");
@@ -43,9 +43,9 @@ export async function proxyCall(caller: Caller, request: Request, body: Record<s
 
   // Keep the call within the balance: shorten the answer if a longer one could
   // not be paid for, and hold the worst case so parallel calls can't overspend.
-  const held = heldFor(caller.address);
+  const held = heldFor(caller.userId);
   const plan = planSpend({
-    available: (await getBalance(caller.address)) - held,
+    available: (await getBalance(caller.userId)) - held,
     inputTokens: parsed.inputTokens,
     requestedMaxTokens: parsed.requestedMaxTokens,
     price,
@@ -54,11 +54,11 @@ export async function proxyCall(caller: Caller, request: Request, body: Record<s
     const running = held > 0 ? " while your other calls are still running" : "";
     return error(
       402,
-      `This call needs about ${plan.needed} credits, more than your balance covers${running}. Shorten the prompt, pick a cheaper model, or earn more on your Kredit dashboard.`,
+      `This call needs about ${plan.needed} credits, more than your balance covers${running}. Shorten the prompt, pick a cheaper model, or buy more on your Kredit dashboard.`,
       "insufficient_credits",
     );
   }
-  const release = hold(caller.address, plan.hold);
+  const release = hold(caller.userId, plan.hold);
 
   // Ask the provider to report usage (and cost, where supported) so the charge is exact.
   const payload: Record<string, unknown> = {

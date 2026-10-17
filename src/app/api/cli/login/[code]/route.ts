@@ -15,6 +15,6 @@ export async function GET(_request: Request, context: { params: Promise<{ code: 
     case "pending":
       return Response.json({ status: "pending", interval: result.interval }, { status: 202 });
     default:
-      return Response.json({ status: "approved", key: result.key, address: result.address, key_id: result.keyId });
+      return Response.json({ status: "approved", key: result.key, user_id: result.userId, key_id: result.keyId });
   }
 }

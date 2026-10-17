@@ -70,7 +70,7 @@ type PlaygroundProps = { initialModel?: string; initialMode?: Mode };
 export function Playground({ initialModel, initialMode }: PlaygroundProps = {}) {
   const session = useSession();
   const queryClient = useQueryClient();
-  const signedIn = Boolean(session.address);
+  const signedIn = Boolean(session.userId);
   const account = useQuery({ queryKey: ACCOUNT_KEY, queryFn: fetchAccount, enabled: signedIn });
 
   // Text, Image or Video, each remembering its own model.
@@ -111,12 +111,8 @@ export function Playground({ initialModel, initialMode }: PlaygroundProps = {}) 
   ) : outOfCredits ? (
     <>
       You are out of credits.{" "}
-      <Link href="/dashboard/earn" className={link}>
-        Earn credits
-      </Link>{" "}
-      or{" "}
       <Link href="/dashboard/credits" className={link}>
-        buy credits
+        Buy credits
       </Link>{" "}
       to keep going.
     </>

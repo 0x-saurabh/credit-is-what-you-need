@@ -4,12 +4,12 @@ import { Header, Logo } from "@/components/header";
 
 const footerLinks = [
   {
-    title: "Earn",
+    title: "Product",
     links: [
-      ["Ways to earn", "/#earn"],
       ["How it works", "/#how"],
-      ["Estimate", "/#estimate"],
       ["Buy credits", "/#buy"],
+      ["Catalog", "/catalog"],
+      ["FAQ", "/#faq"],
     ],
   },
   {
@@ -17,20 +17,19 @@ const footerLinks = [
     links: [
       ["Docs", "/docs"],
       ["Playground", "/playground"],
-      ["Catalog", "/catalog"],
+      ["Integrations", "/docs/integrations"],
     ],
   },
   {
     title: "Kredit",
     links: [
       ["Dashboard", "/dashboard"],
-      ["FAQ", "/#faq"],
+      ["Credits", "/dashboard/credits"],
     ],
   },
   {
     title: "Legal",
     links: [
-      ["Fair play", "/docs/legal/fairness"],
       ["Privacy", "/privacy"],
       ["Terms", "/terms"],
     ],
@@ -48,7 +47,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
           <div>
             <Logo />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink/60">
-              One key, every model, settled on-chain. Built on Robinhood Chain.
+              One key, every model, paid as you go.
             </p>
             <Link
               href="/dashboard"
@@ -78,7 +77,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
           </nav>
         </div>
         <div className="mx-auto flex max-w-6xl flex-col gap-2 border-t border-ink/10 px-4 py-6 text-xs text-ink/50 sm:flex-row sm:items-center sm:justify-between">
-          <p>Kredit · an independent project, not affiliated with Robinhood</p>
+          <p>Kredit · an independent project, not affiliated with any model provider</p>
           <a href="#top" className="transition hover:text-ink">
             Back to top ↑
           </a>

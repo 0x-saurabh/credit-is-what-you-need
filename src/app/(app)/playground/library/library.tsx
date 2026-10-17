@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { ModelLogo } from "@/components/model-logo";
-import { WalletButton } from "@/components/wallet-button";
+import { SignInButton } from "@/components/sign-in-button";
 import { formatCredits } from "@/lib/format";
 import { api } from "@/lib/use-kredit-account";
 import { useSession } from "@/lib/use-session";
@@ -21,11 +21,11 @@ const save = (file: { base64: string; mediaType: string }, name: string) => {
 
 const when = (iso: string) => new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 
-// Every picture and clip this wallet made, newest first, with what it cost.
+// Every picture and clip this person made, newest first, with what it cost.
 export function Library() {
   const session = useSession();
   const queryClient = useQueryClient();
-  const signedIn = Boolean(session.address);
+  const signedIn = Boolean(session.userId);
   const library = useQuery({ queryKey: LIBRARY_KEY, queryFn: () => api<{ creations: Creation[] }>("/api/workspace/creations"), enabled: signedIn });
   const remove = useMutation({
     mutationFn: (id: string) => api<{ ok: true }>(`/api/workspace/creations/${id}`, { method: "DELETE" }),
@@ -37,9 +37,9 @@ export function Library() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-10">
         <h1 className="page-title">Library</h1>
-        <p className="page-lede">The pictures and clips you make in the studio are kept here, for your wallet only. Connect it to see them.</p>
+        <p className="page-lede">The pictures and clips you make in the studio are kept here, for your account only. Sign in to see them.</p>
         <div className="mt-6">
-          <WalletButton label="Sign in" />
+          <SignInButton label="Sign in" />
         </div>
       </div>
     );

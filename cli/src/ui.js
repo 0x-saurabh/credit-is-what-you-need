@@ -17,7 +17,6 @@ export const fail = (text) => `${pc.red(glyph.fail)} ${text}`;
 export const credits = (n) => Number(n).toLocaleString("en-US");
 export const usd = (creditsAmount) => `$${(creditsAmount / 1000).toFixed(2)}`;
 export const plural = (n, word) => `${credits(n)} ${word}${n === 1 ? "" : "s"}`;
-export const shortAddress = (address) => `${address.slice(0, 6)}…${address.slice(-4)}`;
 export const seconds = (ms) => `${(ms / 1000).toFixed(1)}s`;
 
 // A price in a few words, in the unit the model is sold by.

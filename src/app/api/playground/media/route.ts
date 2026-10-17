@@ -2,19 +2,19 @@ import { apiError, PLAYGROUND_KEY_ID, rateLimited } from "@/lib/gateway";
 import { makeImages, makeVideo } from "@/lib/media";
 import { getSession } from "@/lib/session";
 
-// Images and video for the playground, paid from the wallet session like chat.
+// Images and video for the playground, paid from the session like chat.
 // { kind: "image" | "video", model, prompt, ...options }
 export async function POST(request: Request) {
   const session = await getSession();
-  if (!session) return apiError(401, "Sign in with your wallet to use the playground.", "not_signed_in");
-  const limited = rateLimited(`${PLAYGROUND_KEY_ID}:${session.address.toLowerCase()}`);
+  if (!session) return apiError(401, "Sign in to use the playground.", "not_signed_in");
+  const limited = rateLimited(`${PLAYGROUND_KEY_ID}:${session.userId.toLowerCase()}`);
   if (limited) return limited;
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body || typeof body.model !== "string" || typeof body.prompt !== "string" || !body.prompt.trim()) {
     return apiError(400, "Send `model` and `prompt`.", "invalid_body");
   }
-  const caller = { keyId: PLAYGROUND_KEY_ID, address: session.address };
+  const caller = { keyId: PLAYGROUND_KEY_ID, userId: session.userId };
   const str = (key: string) => (typeof body[key] === "string" ? (body[key] as string) : undefined);
 
   if (body.kind === "video") {

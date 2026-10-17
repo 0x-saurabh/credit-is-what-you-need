@@ -2,10 +2,10 @@
 
 import { ApiKeys } from "@/app/(app)/dashboard/api-keys";
 import { KeyIcon } from "@/components/icons";
-import { WalletButton } from "@/components/wallet-button";
+import { SignInButton } from "@/components/sign-in-button";
 import { useSession } from "@/lib/use-session";
 
-const steps = ["Connect the wallet you use on Robinhood Chain.", "Sign one free message.", "Copy your key. It is shown once."];
+const steps = ["Sign in with your email or Google.", "Name a key and create it.", "Copy your key. It is shown once."];
 
 // Claim a key right where the docs are. Signed-out visitors get the way in.
 export function KeyPanel() {
@@ -24,7 +24,7 @@ export function KeyPanel() {
   }
 
   // The dashboard's key manager, calmed down to sit among the docs.
-  if (session.address) {
+  if (session.userId) {
     return (
       <div className="[&_.card]:rounded-xl [&_.card]:bg-surface [&_.card]:bg-none [&_.card]:shadow-none">
         <ApiKeys />
@@ -38,7 +38,7 @@ export function KeyPanel() {
         <span className="entity-icon">
           <KeyIcon className="size-4" />
         </span>
-        <h3 className="text-sm font-medium text-fog">Connect a wallet to create your key</h3>
+        <h3 className="text-sm font-medium text-fog">Sign in to create your key</h3>
       </div>
       <ol className="mt-4 space-y-2 text-[0.8125rem] leading-relaxed text-mist">
         {steps.map((step, index) => (
@@ -49,7 +49,7 @@ export function KeyPanel() {
         ))}
       </ol>
       <div className="mt-5">
-        <WalletButton label="Connect to get a key" />
+        <SignInButton label="Sign in to get a key" />
       </div>
     </div>
   );

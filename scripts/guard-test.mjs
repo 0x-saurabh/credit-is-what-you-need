@@ -89,10 +89,10 @@ await new Promise((resolve) => provider.listen(Number(process.env.MOCK_PORT ?? 3
 const results = [];
 const check = (name, pass, detail = "") => { results.push(pass); console.log(`${pass ? "PASS" : "FAIL"}  ${name} ${detail}`); };
 
-const WALLET = `0x${Date.now().toString(16).padStart(40, "d")}`; // a fresh wallet every run
-const cookie = await sessionCookie(WALLET);
+const USER = `did:privy:test-d${Date.now().toString(36)}`; // a fresh account every run
+const cookie = await sessionCookie(USER);
 const grant = (credits) =>
-  query("INSERT INTO ledger (address, amount, kind, memo) VALUES (?, ?, 'claim', 'guard-test')", [WALLET.toLowerCase(), credits]);
+  query("INSERT INTO ledger (user_id, amount, kind, memo) VALUES (?, ?, 'grant', 'guard-test')", [USER, credits]);
 const balance = async () => (await (await fetch(`${base}/api/account`, { headers: { cookie } })).json()).balance;
 
 const created = await (await fetch(`${base}/api/keys`, { method: "POST", headers: { cookie, "content-type": "application/json" }, body: JSON.stringify({ name: "guard" }) })).json();
@@ -214,9 +214,9 @@ const respEvents = await respStream.text();
 check("a streamed response is billed from response.completed", respStream.status === 200 && respEvents.includes("event: response.completed") && (await balance()) === start - 3);
 
 // A thin balance shortens the answer in every dialect.
-const THIN = `0x${Date.now().toString(16).padStart(40, "f")}`;
-const thinCookie = await sessionCookie(THIN);
-await query("INSERT INTO ledger (address, amount, kind, memo) VALUES (?, 20, 'claim', 'guard-test')", [THIN.toLowerCase()]);
+const THIN_USER = `did:privy:test-f${Date.now().toString(36)}`;
+const thinCookie = await sessionCookie(THIN_USER);
+await query("INSERT INTO ledger (user_id, amount, kind, memo) VALUES (?, 20, 'grant', 'guard-test')", [THIN_USER]);
 const thinKey = await (await fetch(`${base}/api/keys`, { method: "POST", headers: { cookie: thinCookie, "content-type": "application/json" }, body: JSON.stringify({ name: "thin" }) })).json();
 await post("/v1/messages", { "x-api-key": thinKey.key }, { ...anthropicBody, max_tokens: 8000 });
 const thinMsg = received.at(-1);

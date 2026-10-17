@@ -15,7 +15,7 @@ const base = process.env.BASE_URL ?? "http://localhost:3000";
 const CHAT = process.env.CHAT_MODEL ?? "openai/gpt-4o-mini";
 const EMBED = process.env.EMBED_MODEL ?? "openai/text-embedding-3-small";
 const CLAUDE = process.env.CLAUDE_MODEL ?? "anthropic/claude-haiku-4.5";
-const WALLET = `0x${Date.now().toString(16).padStart(40, "d")}`; // a fresh wallet every run
+const USER = `did:privy:test-d${Date.now().toString(36)}`; // a fresh account every run
 
 const results = [];
 const check = (name, pass, detail = "") => { results.push(pass); console.log(`${pass ? "PASS" : "FAIL"}  ${name} ${detail}`); };
@@ -28,11 +28,11 @@ const attempt = async (name, fn) => {
 };
 
 // --- a key with credits
-const cookie = await sessionCookie(WALLET);
-await query("INSERT INTO ledger (address, amount, kind, memo) VALUES (?, 3000, 'claim', 'compat-test')", [WALLET.toLowerCase()]);
+const cookie = await sessionCookie(USER);
+await query("INSERT INTO ledger (user_id, amount, kind, memo) VALUES (?, 3000, 'grant', 'compat-test')", [USER]);
 const created = await (await fetch(`${base}/api/keys`, { method: "POST", headers: { cookie, "content-type": "application/json" }, body: JSON.stringify({ name: "compat" }) })).json();
 const key = created.key;
-check("a key is created for the test wallet", typeof key === "string" && key.startsWith("kred_sk_"));
+check("a key is created for the test account", typeof key === "string" && key.startsWith("kred_sk_"));
 const raw = (path, body, headers = {}) =>
   fetch(`${base}/v1${path}`, { method: "POST", headers: { authorization: `Bearer ${key}`, "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
 

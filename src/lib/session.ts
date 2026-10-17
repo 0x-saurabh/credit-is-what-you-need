@@ -1,12 +1,9 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import type { Address } from "viem";
-import { closeAllSessions, closeSession, openSession, sessionIsLive, spendNonce } from "./session-store.ts";
+import { closeAllSessions, closeSession, openSession, sessionIsLive } from "./session-store.ts";
 
 const SESSION_COOKIE = "kredit_session";
-const NONCE_COOKIE = "kredit_nonce";
 const SESSION_TTL = 60 * 60 * 24 * 7;
-const NONCE_TTL = 60 * 5;
 
 function secret() {
   const value = process.env.SESSION_SECRET;
@@ -42,43 +39,28 @@ async function read(name: string) {
   }
 }
 
-export async function issueNonce(nonce: string) {
-  (await cookies()).set(
-    NONCE_COOKIE,
-    await sign({ nonce }, NONCE_TTL),
-    cookieOptions(NONCE_TTL),
-  );
-}
+export type Session = { userId: string };
 
-// A nonce is single use, even if someone captured the cookie and replays it.
-export async function consumeNonce() {
-  const payload = await read(NONCE_COOKIE);
-  (await cookies()).delete(NONCE_COOKIE);
-  const nonce = payload?.nonce;
-  if (typeof nonce !== "string") return null;
-  return (await spendNonce(nonce, NONCE_TTL)) ? nonce : null;
-}
-
-export async function createSession(address: Address) {
+export async function createSession(userId: string) {
   (await cookies()).set(
     SESSION_COOKIE,
-    await sign({ address, sid: await openSession(address, SESSION_TTL) }, SESSION_TTL),
+    await sign({ userId, sid: await openSession(userId, SESSION_TTL) }, SESSION_TTL),
     cookieOptions(SESSION_TTL),
   );
 }
 
-export async function getSession() {
+export async function getSession(): Promise<Session | null> {
   const payload = await read(SESSION_COOKIE);
-  if (typeof payload?.address !== "string" || typeof payload.sid !== "string") return null;
+  if (typeof payload?.userId !== "string" || typeof payload.sid !== "string") return null;
   // The cookie is only as good as its row: signing out ends it at once.
-  if (!(await sessionIsLive(payload.sid, payload.address))) return null;
-  return { address: payload.address as Address };
+  if (!(await sessionIsLive(payload.sid, payload.userId))) return null;
+  return { userId: payload.userId };
 }
 
-// `everywhere` also signs the wallet out of every other browser.
+// `everywhere` also signs the person out of every other browser.
 export async function clearSession({ everywhere = false } = {}) {
   const payload = await read(SESSION_COOKIE);
   if (typeof payload?.sid === "string") await closeSession(payload.sid);
-  if (everywhere && typeof payload?.address === "string") await closeAllSessions(payload.address);
+  if (everywhere && typeof payload?.userId === "string") await closeAllSessions(payload.userId);
   (await cookies()).delete(SESSION_COOKIE);
 }

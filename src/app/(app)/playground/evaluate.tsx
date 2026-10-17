@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, type ReactNode } from "react";
 import { StopIcon } from "@/components/icons";
 import { ModelLogo } from "@/components/model-logo";
-import { WalletButton } from "@/components/wallet-button";
+import { SignInButton } from "@/components/sign-in-button";
 import { formatCredits } from "@/lib/format";
 import { ACCOUNT_KEY, type AccountResponse } from "@/lib/use-kredit-account";
 import { SparkIcon } from "./icons";
@@ -168,7 +168,7 @@ export function Evaluate({ model, state: signIn, blocked }: EvaluateProps) {
         {blocked && (
           <div className="card mt-5 flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-[0.8125rem] leading-relaxed text-mist">
             <p>{blocked}</p>
-            {signIn === "signed-out" && <WalletButton />}
+            {signIn === "signed-out" && <SignInButton />}
           </div>
         )}
 

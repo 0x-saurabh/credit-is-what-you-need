@@ -3,11 +3,12 @@
 import { usePrivy } from "@privy-io/react-auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import type { Address } from "viem";
 
 export const SESSION_KEY = ["session"];
 
-export type Session = { address: Address | null };
+export type Session = { userId: string | null; email: string | null; name: string | null };
+
+export const SIGNED_OUT: Session = { userId: null, email: null, name: null };
 
 export async function post(url: string, body?: unknown) {
   const response = await fetch(url, {
@@ -40,11 +41,17 @@ export function useSession() {
       await privy.logout().catch(() => {});
     },
     onSuccess: () => {
-      queryClient.setQueryData(SESSION_KEY, { address: null });
+      queryClient.setQueryData(SESSION_KEY, SIGNED_OUT);
       router.push("/");
       router.refresh();
     },
   });
 
-  return { address: session.data?.address ?? null, isLoading: session.isLoading, signOut };
+  return {
+    userId: session.data?.userId ?? null,
+    email: session.data?.email ?? null,
+    name: session.data?.name ?? null,
+    isLoading: session.isLoading,
+    signOut,
+  };
 }

@@ -6,7 +6,7 @@ export async function DELETE(_request: Request, context: RouteContext<"/api/keys
   if (!session) return Response.json({ error: "Sign in first" }, { status: 401 });
 
   const { id } = await context.params;
-  if (!(await revokeKey(session.address, id))) {
+  if (!(await revokeKey(session.userId, id))) {
     return Response.json({ error: "Key not found" }, { status: 404 });
   }
   return Response.json({ ok: true });

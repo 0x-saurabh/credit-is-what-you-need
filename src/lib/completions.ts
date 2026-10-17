@@ -19,8 +19,8 @@ const textOf = (content: unknown) => (typeof content === "string" ? content : JS
 const promptText = (body: ChatBody) => body.messages.map((message) => textOf(message.content)).join("\n");
 
 export async function complete(caller: Caller, request: Request, parsed?: Record<string, unknown>) {
-  if ((await getBalance(caller.address)) <= 0) {
-    return apiError(402, "You are out of credits. Earn more on your Kredit dashboard.", "insufficient_credits");
+  if ((await getBalance(caller.userId)) <= 0) {
+    return apiError(402, "You are out of credits. Buy more on your Kredit dashboard.", "insufficient_credits");
   }
   const raw = parsed ?? ((await request.json().catch(() => null)) as Record<string, unknown> | null);
   if (!raw) return apiError(400, "Send a JSON body with `model` and a non-empty `messages` array.", "invalid_body");

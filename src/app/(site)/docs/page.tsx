@@ -3,16 +3,13 @@ import { ArrowRightIcon, PlayIcon } from "@/components/icons";
 import { catalog } from "@/lib/catalog";
 import { ECHO_MODEL } from "@/lib/gateway";
 import { CREDITS_PER_USD, MARGIN } from "@/lib/pricing";
-import { REFERRAL_PERCENT } from "@/lib/referral-rules";
-import { DAILY_TASK_CAP, TASK_CREDITS } from "@/lib/scoring";
-import { STREAK_MAX_BONUS } from "@/lib/streaks";
 import { KeyPanel } from "./key-panel";
 import { Quickstart } from "./quickstart";
 import { Card, Cards, Doc, H2, number, Table } from "./ui";
 
 export const metadata = {
   title: "Docs — Kredit",
-  description: "Everything about Kredit: earning AI credits from on-chain activity on Robinhood Chain, and spending them through one OpenAI-compatible API.",
+  description: "Everything about Kredit: buying AI credits by card or UPI, and spending them through one OpenAI-compatible API.",
 };
 // The model count depends on how this server is configured, so it is read per request.
 export const dynamic = "force-dynamic";
@@ -26,7 +23,7 @@ export default async function Introduction() {
     <Doc
       slug=""
       title="Kredit documentation"
-      lede="Kredit is an on-chain OpenRouter: one key, every model, the bill in the response headers. Your wallet's record on Robinhood Chain earns the credits, and you can top up on-chain when you need more."
+      lede="Kredit is a simpler OpenRouter: one key, every model, the bill in the response headers. Buy credits by card or UPI, spend them on any model."
     >
       <div className="not-prose flex flex-wrap items-center gap-2">
         <Link href="/docs/quickstart" className="btn-sm btn-sm-primary">
@@ -43,17 +40,15 @@ export default async function Introduction() {
 
       <H2>What Kredit is</H2>
       <p>
-        A wallet signs in with one free message. Kredit reads its record on Robinhood Chain, prices it with public
-        rules, and pays the result into a balance of credits. {number(CREDITS_PER_USD)} credits buy $1 of AI usage
-        through an API that speaks the OpenAI and Anthropic formats, so Cursor, Claude Code, the SDKs and every
-        tool you already use work by changing the base URL.
+        You sign in with an email code or Google and buy credits by card or UPI. {number(CREDITS_PER_USD)} credits buy
+        $1 of AI usage through an API that speaks the OpenAI and Anthropic formats, so Cursor, Claude Code, the SDKs
+        and every tool you already use work by changing the base URL.
       </p>
       <Table
         head={["You do", "Kredit does"]}
         rows={[
-          ["Deploy, call contracts, send transfers", `Pays ${TASK_CREDITS.deploy} / ${TASK_CREDITS.contract_call} / ${TASK_CREDITS.transfer} credits per task, up to ${number(DAILY_TASK_CAP)} a day, plus milestones`],
-          ["Show up day after day", `Adds a streak bonus, up to ${STREAK_MAX_BONUS} credits a day`],
-          ["Invite a friend", `Sends you ${REFERRAL_PERCENT}% of every claim they make`],
+          ["Pay by card, UPI or net banking", `Writes ${number(CREDITS_PER_USD)} credits per $1 to your balance the moment the payment is confirmed`],
+          ["Create an API key", "Hands you a key that spends your balance and nothing else"],
           ["Call a model with your key", `Charges the provider's price with a ${marginPercent}% fee, and tells you in two headers`],
         ]}
         min="28rem"
@@ -62,13 +57,13 @@ export default async function Introduction() {
       <H2>Start here</H2>
       <Cards>
         <Card href="/docs/quickstart" title="Quickstart">
-          Wallet to working API call in five minutes.
+          Sign-in to working API call in five minutes.
         </Card>
         <Card href="/docs/how-it-works" title="How it works">
-          The earn, claim, spend loop and the rules behind it.
+          The buy, spend, read-the-bill loop and the rules behind it.
         </Card>
-        <Card href="/docs/earn/scoring" title="Earn credits">
-          Tasks, milestones, the daily cap, streaks, referrals, on-chain receipts.
+        <Card href="/docs/credits/buying" title="Buying credits">
+          Payment methods, and how a payment turns into credits exactly once.
         </Card>
         <Card href="/docs/api/chat-completions" title="API reference">
           Every endpoint, parameter, header and error, with runnable examples.
@@ -90,18 +85,17 @@ export default async function Introduction() {
       <ul>
         <li>
           <strong>Rules, not discretion.</strong> Every number on this site is read from the code that does the
-          scoring and billing, and the <Link href="/docs/rules">rules page</Link> lists all of them.
+          billing, and the <Link href="/docs/rules">rules page</Link> lists all of them.
         </li>
         <li>
-          <strong>Everything pays once.</strong> A transaction, a milestone, a streak day, a payment: each is paid
-          exactly one time, enforced in a single database transaction.
+          <strong>Everything pays once.</strong> A payment is written to the ledger exactly one time, enforced in a
+          single database transaction keyed by the provider&apos;s payment id.
         </li>
         <li>
-          <strong>Claims are public, spending is private.</strong> Every claim is a receipt on Robinhood Chain;
-          nobody sees what you spent the credits on.
+          <strong>Spending is private.</strong> Nobody sees what you spent the credits on; prompts are never stored.
         </li>
         <li>
-          <strong>No custody.</strong> Signing in costs no gas and grants nothing. Kredit never holds your tokens.
+          <strong>No card on file.</strong> Payments happen at the payment provider. Kredit never holds your card.
         </li>
       </ul>
     </Doc>

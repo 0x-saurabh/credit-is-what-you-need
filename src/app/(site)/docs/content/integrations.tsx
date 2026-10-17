@@ -19,8 +19,8 @@ export function Integrations() {
       </p>
       <OriginTabs
         tabs={[
-          { name: "Python", code: snippets.Python({ origin: "{origin}", model: "openai/gpt-4o", message: "Explain a receipt in one line." }) },
-          { name: "Node", code: snippets.Node({ origin: "{origin}", model: "openai/gpt-4o", message: "Explain a receipt in one line." }) },
+          { name: "Python", code: snippets.Python({ origin: "{origin}", model: "openai/gpt-4o", message: "Explain an API rate limit in one line." }) },
+          { name: "Node", code: snippets.Node({ origin: "{origin}", model: "openai/gpt-4o", message: "Explain an API rate limit in one line." }) },
         ]}
       />
 
@@ -40,7 +40,7 @@ export function Integrations() {
         title="Shell"
         code={`npm install -g {origin}/cli/kredit-cli.tgz
 kredit login                                  # paste a key from the dashboard
-kredit chat "explain gas fees in one line"
+kredit chat "explain rate limits in one line"
 kredit chat -m anthropic/claude-haiku-4.5     # a conversation, turn by turn
 cat notes.md | kredit chat -s "summarize"     # pipe text in
 kredit models claude                          # find a model and its price

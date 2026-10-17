@@ -17,7 +17,7 @@ export async function POST(request: Request, context: Context) {
   if (body.content.length > MAX_MESSAGE_CHARS) {
     return Response.json({ error: `A message can hold ${MAX_MESSAGE_CHARS.toLocaleString("en-US")} characters.` }, { status: 413 });
   }
-  const saved = await appendMessage(session.address, id, {
+  const saved = await appendMessage(session.userId, id, {
     role: body.role,
     content: body.content,
     model: typeof body.model === "string" ? body.model : null,
@@ -36,6 +36,6 @@ export async function PATCH(request: Request, context: Context) {
   await context.params;
   const body = (await request.json().catch(() => null)) as { messageId?: unknown; credits?: unknown } | null;
   if (typeof body?.messageId !== "number" || typeof body.credits !== "number") return Response.json({ error: "Send messageId and credits" }, { status: 400 });
-  await priceMessage(session.address, body.messageId, body.credits);
+  await priceMessage(session.userId, body.messageId, body.credits);
   return Response.json({ ok: true });
 }

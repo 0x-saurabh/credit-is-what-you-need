@@ -1,18 +1,12 @@
-import { CheckIcon, CoinsIcon, SparkIcon, WalletIcon } from "@/components/icons";
+import { CheckIcon, CoinsIcon, SparkIcon, UsersIcon } from "@/components/icons";
 import { ProviderLogo } from "@/components/model-logo";
 import { Reveal } from "@/components/motion/reveal";
 import { formatCredits } from "@/lib/format";
+import { CREDITS_PER_USD } from "@/lib/pricing";
 import { featuredProviders } from "@/lib/providers";
-import { TASK_CREDITS } from "@/lib/scoring";
 
-// Small illustrations of what each stage hands you. Not real data, but the credit
-// values are read from the scoring rules so they can't drift from them.
-const receiptLines = [
-  { label: "Deployed a contract", credits: TASK_CREDITS.deploy },
-  { label: "Contract interaction", credits: TASK_CREDITS.contract_call },
-];
-const receiptTotal = receiptLines.reduce((sum, line) => sum + line.credits, 0);
-
+// Small illustrations of what each stage hands you. Not real data, but the
+// credit values are read from the pricing rules so they can't drift from them.
 const makers = featuredProviders.slice(0, 5);
 
 // How many models the default upstream lists. A round floor, so it stays true as the list grows.
@@ -22,38 +16,38 @@ function SignedProof() {
   return (
     <>
       <div className="flex items-center justify-between gap-3">
-        <span className="truncate text-fog">0x71C7…976F</span>
+        <span className="truncate text-fog">you@example.com</span>
         <span className="flex shrink-0 items-center gap-1.5 text-accent">
           <CheckIcon className="size-3.5" />
-          Signed
+          Signed in
         </span>
       </div>
       <div className="mt-1.5 flex items-center justify-between gap-3">
-        <span>Network</span>
-        <span className="truncate text-fog">Robinhood Chain</span>
+        <span>Method</span>
+        <span className="truncate text-fog">Email code</span>
       </div>
       <div className="mt-2.5 flex items-center justify-between gap-3 border-t border-dashed border-line pt-2.5">
-        <span>Gas paid</span>
-        <span className="tabular-nums text-fog">0 ETH</span>
+        <span>Password</span>
+        <span className="tabular-nums text-fog">none</span>
       </div>
     </>
   );
 }
 
-function ReceiptProof() {
+function PurchaseProof() {
   return (
     <>
-      <ul className="space-y-1.5">
-        {receiptLines.map((line) => (
-          <li key={line.label} className="flex items-baseline justify-between gap-3">
-            <span className="truncate">{line.label}</span>
-            <span className="shrink-0 tabular-nums text-fog">+{formatCredits(line.credits)}</span>
-          </li>
-        ))}
-      </ul>
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="truncate">Paid by UPI</span>
+        <span className="shrink-0 tabular-nums text-fog">₹850.00</span>
+      </div>
+      <div className="mt-1.5 flex items-baseline justify-between gap-3">
+        <span className="truncate">Confirmed by</span>
+        <span className="shrink-0 text-fog">payment provider</span>
+      </div>
       <div className="mt-2.5 flex items-baseline justify-between gap-3 border-t border-dashed border-line pt-2.5">
-        <span>Claimable</span>
-        <span className="tabular-nums font-semibold text-accent">{formatCredits(receiptTotal)}</span>
+        <span>Credits</span>
+        <span className="tabular-nums font-semibold text-accent">+{formatCredits(CREDITS_PER_USD * 10)}</span>
       </div>
     </>
   );
@@ -84,16 +78,16 @@ function ModelProof() {
 
 const stages = [
   {
-    icon: WalletIcon,
-    title: "Wallet activity",
-    text: "Sign in with the wallet you use on Robinhood Chain, or with your email.",
+    icon: UsersIcon,
+    title: "Sign in",
+    text: "An email code or your Google account. No password, no wallet, nothing to install.",
     proof: <SignedProof />,
   },
   {
     icon: CoinsIcon,
-    title: "Credits",
-    text: "Kredit scans your record, shows a receipt for every task, and you claim the total.",
-    proof: <ReceiptProof />,
+    title: "Buy credits",
+    text: "Pay by card or UPI. The credits land in your balance the moment the payment is confirmed.",
+    proof: <PurchaseProof />,
   },
   {
     icon: SparkIcon,

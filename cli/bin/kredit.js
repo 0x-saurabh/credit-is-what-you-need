@@ -43,7 +43,7 @@ KREDIT_BASE_URL in the environment override the saved settings.`,
 
 program.command("login [key]").description("save an API key on this machine").action(login);
 program.command("logout").description("forget the saved key").action(logout);
-program.command("whoami").alias("account").alias("balance").description("your wallet, key and balance").option("--json", "print the account as JSON").action(whoami);
+program.command("whoami").alias("account").alias("balance").description("your account, key and balance").option("--json", "print the account as JSON").action(whoami);
 
 program
   .command("chat [prompt...]")
